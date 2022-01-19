@@ -1,7 +1,6 @@
 import os
 import discord
 from discord_slash import SlashCommand
-from discord_slash.utils.manage_commands import create_option
 from fetcher import fetch_tweets
 
 client = discord.Client(intents=discord.Intents.all())
