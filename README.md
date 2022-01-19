@@ -14,14 +14,19 @@ TWITTER_BEARER_TOKEN
 HOLOTWEETBOT_TOKEN
 ```
 
+You will also need to set the `HOLOTWEETBOT_CHANNEL` variable with the
+channel ID where you want the messages to be sent to.
+
 Finally, run `python main.py`.
 
 
 ## Usage
 
-Currently: use `/holotweets` to fetch and display new tweets.
+The bot automatically sends new tweets in the specified channel, every 60 seconds
+(the timeout is configurable in `main.py`). The query is configurable in the
+`fetcher.py` file.
 
-Ideally: the bot automatically sends new tweets in a specified channel.
+Optionally you can use `/holotweets` to fetch and display new tweets manually.
 
 
 ## Docker? Docker!
