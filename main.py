@@ -26,8 +26,8 @@ async def holotweets(ctx):
         await ctx.send(f"Nothing new found")
     else:
         result = str(tweets_fetched) + " new tweets found\n"
-        for tweet in tweets.data:
-            result += (tweet + "---------------------------------\n")
+        for tweet in tweets:
+            result += (str(tweet) + "---------------------------------\n")
         await ctx.send(result)
 
 
