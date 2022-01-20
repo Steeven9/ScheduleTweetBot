@@ -1,24 +1,56 @@
-import tweepy as tw
 import os
+from tweepy import Client
 
 bearer_token = os.getenv("TWITTER_BEARER_TOKEN")
-client = tw.Client(bearer_token, wait_on_rate_limit=True)
+client = Client(bearer_token, wait_on_rate_limit=True)
 
-# Mathces tweets that
+# Matches tweets that
 # - have the keyword "schedule" in it
 # - are not retweets
 # - have an image attached
-# - are from one of the 11 EN talents
-query = "schedule -is:retweet has:media (from:gawrgura OR from:ninomaeinanis \
-    OR from:watsonameliaEN OR from:takanashikiara OR from:moricalliope \
-    OR from:irys_en OR from:ourokronii OR from:hakosbaelz OR from:ceresfauna \
-    OR from:tsukumosana OR from:nanashimumei_en)"
+# - are from the talents below
+
+# Myth
+talents = [
+    "gawrgura", "moricalliope", "ninomaeinanis", "takanashikiara",
+    "watsonameliaEN"
+]
+# Hope
+talents += ["irys_en"]
+# Council
+talents += [
+    "ceresfauna",
+    "hakosbaelz",
+    "nanashimumei_en",
+    "ourokronii",
+    "tsukumosana",
+]
+# ID gen 1
+talents += [
+    "ayunda_risu",
+    "airaniiofifteen",
+    "moonahoshinova",
+]
+# ID gen 2
+talents += [
+    "anyamelfissa",
+    "kureijiollie",
+    "pavoliareine",
+]
+
+query = "schedule -is:retweet has:media ("
+for talent in talents:
+    if talent == talents[0]:
+        query += "from:" + talent
+    else:
+        query += " OR from:" + talent
+query += ")"
 
 
 def fetch_tweets(newest_id):
     tweets = client.search_recent_tweets(query,
                                          since_id=newest_id,
-                                         max_results=11)
+                                         max_results=len(talents))
 
     new_tweets = tweets.meta["result_count"]
     if new_tweets != 0:
@@ -27,4 +59,7 @@ def fetch_tweets(newest_id):
 
 
 if __name__ == "__main__":
-    print(fetch_tweets(None))
+    [tweets, tweets_fetched, newest_id] = fetch_tweets(None)
+    print(tweets_fetched, "found\n")
+    for tweet in tweets:
+        print(tweet, "\n---------------------------------\n")

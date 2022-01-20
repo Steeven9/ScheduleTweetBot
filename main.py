@@ -1,11 +1,12 @@
 import os
-import discord
-import datetime
-from discord.ext import tasks
+from discord import Activity, ActivityType
+from datetime import datetime
+from discord.ext import tasks, commands
 from discord_slash import SlashCommand
 from fetcher import fetch_tweets
 
-client = discord.Client(intents=discord.Intents.all())
+# Prefix is ignored
+client = commands.Bot(".holotweetbot")
 slash = SlashCommand(client, sync_commands=True)
 newest_id = None
 
@@ -23,7 +24,7 @@ async def get_tweets(channel):
         return tweets_fetched
     else:
         result = str(tweets_fetched) + " new tweets found\n\n"
-        ct = datetime.datetime.now()
+        ct = datetime.now()
         print(ct, "-", tweets_fetched, "found")
         for tweet in tweets:
             result += (str(tweet) + "\n---------------------------------\n")
@@ -32,8 +33,8 @@ async def get_tweets(channel):
 
 @client.event
 async def on_ready():
-    await client.change_presence(activity=discord.Activity(
-        type=discord.ActivityType.watching, name="tweets for you"))
+    await client.change_presence(
+        activity=Activity(type=ActivityType.watching, name="tweets for you"))
     print("Logged in as {0.user}".format(client))
     check_tweets.start()
 
@@ -45,7 +46,7 @@ async def on_ready():
 async def holotweets(ctx):
     global newest_id
     tweets_fetched = await get_tweets(ctx)
-    ct = datetime.datetime.now()
+    ct = datetime.now()
     print(ct, "-", tweets_fetched, "found (via command)")
     if tweets_fetched == 0:
         await ctx.send(f"Nothing new found")
