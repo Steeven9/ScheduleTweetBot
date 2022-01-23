@@ -1,5 +1,5 @@
 import os
-from discord import Activity, ActivityType
+from discord import Activity, ActivityType, errors
 from datetime import datetime
 from discord.ext import tasks, commands
 from discord_slash import SlashCommand
@@ -25,10 +25,15 @@ async def get_tweets(channel):
     else:
         result = str(tweets_fetched) + " new tweets found\n\n"
         ct = datetime.now()
-        print(ct, "-", tweets_fetched, "found")
         for tweet in tweets:
             result += (str(tweet) + "\n---------------------------------\n")
-        await channel.send(result)
+        try:
+            print(ct, "-", tweets_fetched, "found")
+            await channel.send(result)
+        except errors.HTTPException:
+            print(ct, "-", tweets_fetched, "skipped due to length")
+            await channel.send("Too much characters, skipping " +
+                               str(tweets_fetched) + " tweets")
 
 
 @client.event
