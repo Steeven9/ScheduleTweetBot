@@ -48,18 +48,19 @@ query += ")"
 
 
 def fetch_tweets(newest_id):
-    tweets = client.search_recent_tweets(query,
+    response = client.search_recent_tweets(query,
                                          since_id=newest_id,
-                                         max_results=len(talents))
+                                         max_results=len(talents),
+                                         expansions=["attachments.media_keys", "author_id"])
 
-    new_tweets = tweets.meta["result_count"]
+    new_tweets = response.meta["result_count"]
     if new_tweets != 0:
-        newest_id = tweets.meta["newest_id"]
-    return [tweets.data, new_tweets, newest_id]
+        newest_id = response.meta["newest_id"]
+    return [response, new_tweets, newest_id]
 
 
 if __name__ == "__main__":
-    [tweets, tweets_fetched, newest_id] = fetch_tweets(None)
+    [response, tweets_fetched, newest_id] = fetch_tweets(None)
     print(tweets_fetched, "found\n")
-    for tweet in tweets:
+    for tweet in response.data:
         print(tweet, "\n---------------------------------\n")
