@@ -1,6 +1,11 @@
 # <img src="logo.png" width="100"> HoloTweetBot
 
-A simple Discord bot to fetch schedule-related Hololive tweets.
+[![](https://img.shields.io/github/license/Steeven9/HoloTweetBot)](/LICENSE)
+[![C/C++ CI](https://github.com/Steeven9/HoloTweetBot/actions/workflows/docker-image.yml/badge.svg)](https://github.com/Steeven9/HoloTweetBot/actions/workflows/docker-image.yml)
+![](https://img.shields.io/tokei/lines/github/Steeven9/HoloTweetBot)
+
+A simple Discord bot to fetch schedule-related Hololive tweets to
+feed our [schedule](https://holocal.moe).
 
 Profile picture by the one and only [DuDuL](https://twitter.com/DuDuLtv)!
 
