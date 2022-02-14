@@ -27,7 +27,6 @@ Discord channel ID where you want the messages to be sent to.
 
 Finally, run `python main.py`.
 
-
 ## Usage
 
 The bot automatically sends new tweets in the specified channel every 60 seconds
@@ -41,7 +40,6 @@ to sync, or check that you invited the bot with the `applications.commands` scop
 The most recent tweet is saved each time so you won't see the same one twice;
 by default the ID is written in the `config/holotweetbot.ini` file
 (configurable in `main.py` as well).
-
 
 ## Docker? Docker!
 

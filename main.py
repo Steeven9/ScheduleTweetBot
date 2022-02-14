@@ -1,5 +1,5 @@
 import os
-from discord import Activity, ActivityType, errors
+from discord import Activity, ActivityType, errors, utils
 from datetime import datetime
 from discord.ext import tasks, commands
 from discord_slash import SlashCommand
@@ -25,7 +25,7 @@ discord_token = os.getenv("HOLOTWEETBOT_TOKEN")
 # Try to read latest ID from file
 try:
     f = open(filename, "r")
-    newest_id = f.read()
+    newest_id = f.read().strip()
     print("Loaded config from file")
 except FileNotFoundError:
     os.makedirs(os.path.dirname(filename), exist_ok=True)
@@ -55,7 +55,13 @@ async def get_and_send_tweets(channel):
         f.close()
 
         # Construct message
-        result = ""
+        if channel_id == 882283424457568257:
+            # Specific ping for KFP | The Office
+            schedule_ping = utils.get(channel.guild.roles,
+                                      id=801317291072946177)
+            result = f"{schedule_ping.mention} "
+        else:
+            result = ""
         tweets = response.data
         users = {user["id"]: user for user in response.includes["users"]}
         for tweet in tweets:
@@ -68,8 +74,8 @@ async def get_and_send_tweets(channel):
         except errors.HTTPException:
             print(ct, "-", tweets_fetched, "skipped due to length")
             await channel.send(
-                "Too many characters, skipping {0} tweets".format(
-                    tweets_fetched))
+                "Too many characters to send in one message, skipping {0} tweets"
+                .format(tweets_fetched))
 
 
 @client.event
