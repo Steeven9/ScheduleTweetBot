@@ -66,7 +66,7 @@ async def get_and_send_tweets(channel):
         users = {user["id"]: user for user in response.includes["users"]}
         i = 1
         for tweet in tweets:
-            result += "Tweet from {0} - https://twitter.com/twitter/statuses/{1}\n".format(
+            result += "Tweet from {0} - https://twitter.com/{0}/status/{1}\n".format(
                 users[tweet.author_id].username, tweet.id)
             if i < tweets_fetched:
                 result += separator + "\n"
