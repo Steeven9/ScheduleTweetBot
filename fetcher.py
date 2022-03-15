@@ -1,10 +1,11 @@
-import os
+from os import getenv
+
 from tweepy import Client
 
 # Separator between tweets
 separator = "---------------------------------"
 # Twitter bearer token
-bearer_token = os.getenv("TWITTER_BEARER_TOKEN")
+bearer_token = getenv("TWITTER_BEARER_TOKEN")
 
 if bearer_token == None:
     raise ValueError("Twitter bearer token not found!")
@@ -50,11 +51,10 @@ query += ")"
 
 
 def fetch_tweets(newest_id):
-    response = client.search_recent_tweets(
-        query,
-        since_id=newest_id,
-        max_results=len(talents),
-        expansions=["author_id"])
+    response = client.search_recent_tweets(query,
+                                           since_id=newest_id,
+                                           max_results=len(talents),
+                                           expansions=["author_id"])
 
     new_tweets = response.meta["result_count"]
     if new_tweets != 0:
