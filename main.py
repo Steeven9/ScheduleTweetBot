@@ -4,7 +4,7 @@ from os import getenv, makedirs, path
 from discord import Activity, ActivityType, errors, utils
 from discord.ext import commands, tasks
 from discord_slash import SlashCommand
-from tweepy import errors
+from tweepy.errors import TwitterServerError
 
 from fetcher import fetch_tweets
 
@@ -49,7 +49,7 @@ async def get_and_send_tweets(channel, debug_channel):
     ct = datetime.now()
     try:
         [response, tweets_fetched, newest_id] = fetch_tweets(newest_id)
-    except errors.TwitterServerError:
+    except TwitterServerError:
         print(ct, "- Error fetching tweets")
         await debug_channel.send("Bot error")
         return
