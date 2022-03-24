@@ -44,8 +44,14 @@ talents += [
     "kureijiollie",
     "pavoliareine",
 ]
+# ID gen 3
+talents += [
+    "kaelakovalskia",
+    "kobokanaeru",
+    "vestiazeta",
+]
 
-query = "schedule -is:retweet has:media (from:"
+query = "-is:retweet ((guerrilla OR guerilla) OR (schedule has:media)) (from:"
 query += " OR from:".join(talents)
 query += ")"
 
