@@ -4,7 +4,7 @@ from os import getenv, makedirs, path
 from discord import Activity, ActivityType, errors, utils
 from discord.ext import commands, tasks
 from discord_slash import SlashCommand
-from tweepy.errors import TwitterServerError
+from tweepy.errors import TwitterServerError, BadRequest
 
 from fetcher import fetch_tweets
 
@@ -49,9 +49,15 @@ async def get_and_send_tweets(channel, debug_channel):
     ct = datetime.now()
     try:
         [response, tweets_fetched, newest_id] = fetch_tweets(newest_id)
-    except TwitterServerError:
-        print(ct, "- Error fetching tweets")
-        await debug_channel.send("Bot error")
+    except TwitterServerError as err:
+        err_string = "Twitter died: {0}".format(err)
+        print(ct, err_string)
+        await debug_channel.send(err_string)
+        return
+    except BadRequest as err:
+        err_string = "API error: {0}".format(err)
+        print(ct, err_string)
+        await debug_channel.send(err_string)
         return
 
     if tweets_fetched == 0:
@@ -70,7 +76,14 @@ async def get_and_send_tweets(channel, debug_channel):
         i = 1
         users_string = ""
         for tweet in tweets:
-            result += "Tweet from {0} - https://twitter.com/{0}/status/{1}\n".format(
+            if "schedule" in tweet.text.lower():
+                result += "Schedule tweet"
+            elif "guerilla" in tweet.text.lower() or "guerrilla" in tweet.text.lower():
+                result += "Guerilla tweet"
+            else:
+                result += "Tweet"
+
+            result += " from {0} - https://twitter.com/{0}/status/{1}\n".format(
                 users[tweet.author_id].username, tweet.id)
             users_string += users[tweet.author_id].username
             if i < tweets_fetched:
