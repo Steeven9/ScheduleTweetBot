@@ -76,6 +76,8 @@ async def get_and_send_tweets(channel, debug_channel):
         i = 1
         users_string = ""
         for tweet in tweets:
+            if "RT @" in tweet.text[:4]:
+                result += "[{0}] ".format(get_rt_text(tweet))
             if "schedule" in tweet.text.lower():
                 result += "Schedule tweet"
             elif "guerilla" in tweet.text.lower() or "guerrilla" in tweet.text.lower():
@@ -139,6 +141,16 @@ async def check_tweets():
     channel = client.get_channel(int(channel_id))
     debug_channel = client.get_channel(int(debug_channel_id))
     await get_and_send_tweets(channel, debug_channel)
+
+
+# Helper to get the "RT @username" string
+def get_rt_text(tweet):
+    result = ""
+    pos = 1
+    while str(tweet)[:pos][pos - 1] != ":":
+        result += str(tweet)[:pos][pos - 1]
+        pos += 1
+    return result
 
 
 client.run(discord_token)
