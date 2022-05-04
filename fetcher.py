@@ -51,7 +51,7 @@ talents += [
     "vestiazeta",
 ]
 
-query = "-is:retweet ((guerrilla OR guerilla) OR (schedule has:media)) (from:"
+query = "-is:retweet ((guerrilla OR guerilla) OR ((schedule OR weekly) has:media)) (from:"
 query += " OR from:".join(talents)
 query += ")"
 
