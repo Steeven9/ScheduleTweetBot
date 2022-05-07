@@ -4,9 +4,9 @@ from os import getenv, makedirs, path
 from discord import Activity, ActivityType, errors, utils
 from discord.ext import commands, tasks
 from discord_slash import SlashCommand
-from tweepy.errors import TwitterServerError, BadRequest
+from tweepy.errors import BadRequest, TwitterServerError
 
-from fetcher import fetch_tweets
+from fetcher import fetch_spaces, fetch_tweets
 
 # -- Options --
 # Interval between each fetch (in seconds)
@@ -48,7 +48,8 @@ async def get_and_send_tweets(channel, debug_channel):
     global newest_id
     ct = datetime.now()
     try:
-        [response, tweets_fetched, newest_id] = fetch_tweets(newest_id)
+        [tweets, tweets_fetched, newest_id] = fetch_tweets(newest_id)
+        [spaces, spaces_fetched] = fetch_spaces()
     except TwitterServerError as err:
         err_string = "Twitter died: {0}".format(err)
         print(ct, err_string)
@@ -60,56 +61,66 @@ async def get_and_send_tweets(channel, debug_channel):
         await debug_channel.send(err_string)
         return
 
-    if tweets_fetched == 0:
-        return tweets_fetched
+    if tweets_fetched != 0:
+        await send_message(tweets, channel, tweets_fetched)
+    if spaces_fetched != 0:
+        # TODO examine the data and see what it returns
+        print(spaces)
+        await send_message(spaces, debug_channel, spaces_fetched)
+
+    # Save latest ID to file
+    f = open(filename, "w")
+    f.write(newest_id)
+    f.close()
+
+    return tweets_fetched + spaces_fetched
+
+
+async def send_message(data, channel, tweets_fetched):
+    ct = datetime.now()
+    # Construct message
+    if channel_id == "882283424457568257":
+        # Specific ping for KFP | The Office
+        schedule_ping = utils.get(channel.guild.roles, id=801317291072946177)
+        result = f"{schedule_ping.mention} "
     else:
-        # Construct message
-        if channel_id == "882283424457568257":
-            # Specific ping for KFP | The Office
-            schedule_ping = utils.get(channel.guild.roles,
-                                      id=801317291072946177)
-            result = f"{schedule_ping.mention} "
+        result = ""
+    tweets = data.data
+    users = {user["id"]: user for user in data.includes["users"]}
+    i = 1
+    users_string = ""
+    for tweet in tweets:
+        if "RT @" in tweet.text[:4]:
+            result += "[{0}] ".format(get_rt_text(tweet))
+
+        if "schedule" in tweet.text.lower():
+            result += "Schedule tweet"
+        elif "guerilla" in tweet.text.lower(
+        ) or "guerrilla" in tweet.text.lower():
+            result += "Guerilla tweet"
         else:
-            result = ""
-        tweets = response.data
-        users = {user["id"]: user for user in response.includes["users"]}
-        i = 1
-        users_string = ""
-        for tweet in tweets:
-            if "RT @" in tweet.text[:4]:
-                result += "[{0}] ".format(get_rt_text(tweet))
-            if "schedule" in tweet.text.lower():
-                result += "Schedule tweet"
-            elif "guerilla" in tweet.text.lower() or "guerrilla" in tweet.text.lower():
-                result += "Guerilla tweet"
-            else:
-                result += "Tweet"
+            result += "Tweet"
 
-            result += " from {0} - https://twitter.com/{0}/status/{1}\n".format(
-                users[tweet.author_id].username, tweet.id)
-            users_string += users[tweet.author_id].username
-            if i < tweets_fetched:
-                result += separator + "\n"
-                users_string += ", "
-            i += 1
+        result += " from {0} - https://twitter.com/{0}/status/{1}\n".format(
+            users[tweet.author_id].username, tweet.id)
+        users_string += users[tweet.author_id].username
+        if i < tweets_fetched:
+            result += separator + "\n"
+            users_string += ", "
+        i += 1
 
-        # Send Discord message
-        try:
-            await channel.send(result)
-        except errors.HTTPException:
-            print(ct, "-", tweets_fetched, "from", users_string,
-                  "skipped due to length")
-            await channel.send(
-                "Too many characters to send in one message, skipping {0} tweets from {1}"
-                .format(tweets_fetched, users_string))
+    # Log event
+    print(ct, "-", tweets_fetched, "found from", users_string)
 
-        # Log event
-        print(ct, "-", tweets_fetched, "found from", users_string)
-
-        # Save latest ID to file
-        f = open(filename, "w")
-        f.write(newest_id)
-        f.close()
+    # Send Discord message
+    try:
+        await channel.send(result)
+    except errors.HTTPException:
+        print(ct, "-", tweets_fetched, "from", users_string,
+              "skipped due to length")
+        await channel.send(
+            "Too many characters to send in one message, skipping {0} tweets from {1}"
+            .format(tweets_fetched, users_string))
 
 
 @client.event

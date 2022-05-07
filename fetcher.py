@@ -11,10 +11,10 @@ if bearer_token == None:
     raise ValueError("Twitter bearer token not found!")
 client = Client(bearer_token, wait_on_rate_limit=True)
 
-# Matches tweets that
-# - have the keyword "schedule" in it
+# Matches tweets that:
+# - have the keyword "schedule" or "weekly" in them and have an image attached
+#   OR have the keyword "guerrilla" or "guerilla" in them
 # - are not retweets
-# - have an image attached
 # - are from the talents below
 
 # Myth
@@ -51,9 +51,11 @@ talents += [
     "vestiazeta",
 ]
 
-query = "-is:retweet ((guerrilla OR guerilla) OR ((schedule OR weekly) has:media)) (from:"
+query = "-is:retweet ((guerrilla OR guerilla) OR ((schedule OR (s c h e d u l e) OR weekly) has:media)) (from:"
 query += " OR from:".join(talents)
 query += ")"
+
+spaces_query = "from:" + " OR from:".join(talents)
 
 
 def fetch_tweets(newest_id):
@@ -66,6 +68,14 @@ def fetch_tweets(newest_id):
     if new_tweets != 0:
         newest_id = response.meta["newest_id"]
     return [response, new_tweets, newest_id]
+
+
+def fetch_spaces():
+    response_spaces = client.search_spaces(spaces_query,
+                                           max_results=len(talents),
+                                           expansions=["creator_id"])
+    new_tweets = response_spaces.meta["result_count"]
+    return [response_spaces, new_tweets]
 
 
 if __name__ == "__main__":
