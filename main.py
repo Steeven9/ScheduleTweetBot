@@ -6,8 +6,8 @@ from discord.ext import commands, tasks
 from discord_slash import SlashCommand
 from tweepy.errors import BadRequest, TwitterServerError
 
-from fetcher import (fetch_spaces, fetch_tweets, guerrilla_keywords,
-                     schedule_keywords)
+from fetcher import (fetch_spaces, fetch_tweets, fetch_user_ids,
+                     guerrilla_keywords, schedule_keywords, talents)
 
 # -- Options --
 # Interval between each fetch (in seconds)
@@ -43,14 +43,16 @@ if channel_id == None:
     raise ValueError("Channel ID not found!")
 if discord_token == None:
     raise ValueError("Discord bot token not found!")
+talents_data = []
 
 
 async def get_and_send_tweets(channel, debug_channel):
-    global newest_id
+    global newest_id, talents_data
     ct = datetime.now()
     try:
-        [tweets, tweets_fetched, newest_id] = fetch_tweets(newest_id)
-        [spaces, spaces_fetched] = fetch_spaces()
+        [tweets, tweets_fetched,
+         newest_id] = fetch_tweets(newest_id, talents_data)
+        [spaces, spaces_fetched] = fetch_spaces(talents_data)
     except TwitterServerError as err:
         err_string = "Twitter died: {0}".format(err)
         print(ct, err_string)
@@ -128,6 +130,15 @@ async def send_message(data, channel, tweets_fetched):
 
 @client.event
 async def on_ready():
+    global talents_data
+    talents_data, talents_amount = fetch_user_ids()
+    print("Loaded {0} talents".format(talents_amount))
+    if talents_amount != len(talents):
+        print(
+            "Error fetching talents data! Found {0} but should be {1}".format(
+                talents_amount, len(talents)))
+        exit(-1)
+
     await client.change_presence(
         activity=Activity(type=ActivityType.watching, name="tweets for you"))
     print("Logged in as {0}".format(client.user))
