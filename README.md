@@ -31,7 +31,7 @@ Finally, run `python main.py`.
 
 The bot automatically sends new tweets in the specified channel every 60 seconds
 (the timeout is configurable in `main.py`). The query is configurable in the
-`fetcher.py` file.
+`fetcher.py` file, while the watched users and keywords can be set in the `data.py` file.
 
 Optionally you can also use `/holotweets` to fetch and display new tweets manually.
 If you don't see the slash command in your server, wait around one hour to allow it
@@ -41,7 +41,7 @@ The most recent tweet is saved each time so you won't see the same one twice;
 by default the ID is written in the `config/holotweetbot.ini` file
 (configurable in `main.py` as well).
 
-## Docker? Docker!
+## Docker? Docker
 
 Create a `.env` file with the environment variables above, then build or pull the image and run it:
 

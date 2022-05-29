@@ -2,6 +2,8 @@ from os import getenv
 
 from tweepy import Client
 
+from data import guerrilla_keywords, schedule_keywords, talents
+
 # Separator between tweets
 separator = "---------------------------------"
 # Twitter bearer token
@@ -12,48 +14,19 @@ if bearer_token == None:
 client = Client(bearer_token, wait_on_rate_limit=True)
 
 # Matches tweets that:
-# - have the keyword "schedule" or "weekly" in them and have an image attached
-#   OR have the keyword "guerrilla" or "guerilla" in them
+# - have a keyword from schedule_keywords in them and have an image attached
+#   OR have a keyword from guerrilla_keywords in them
 # - are not retweets
-# - are from the talents below
+# - are from someone in the talents array
 
-# Myth
-talents = [
-    "gawrgura", "moricalliope", "ninomaeinanis", "takanashikiara",
-    "watsonameliaEN"
-]
-# Hope
-talents += ["irys_en"]
-# Council
-talents += [
-    "ceresfauna",
-    "hakosbaelz",
-    "nanashimumei_en",
-    "ourokronii",
-    "tsukumosana",
-]
-# ID gen 1
-talents += [
-    "ayunda_risu",
-    "airaniiofifteen",
-    "moonahoshinova",
-]
-# ID gen 2
-talents += [
-    "anyamelfissa",
-    "kureijiollie",
-    "pavoliareine",
-]
-# ID gen 3
-talents += [
-    "kaelakovalskia",
-    "kobokanaeru",
-    "vestiazeta",
-]
-
-query = "-is:retweet ((guerrilla OR guerilla) OR ((schedule OR (s c h e d u l e) OR weekly) has:media)) (from:"
+query = "-is:retweet ((" + " OR ".join(
+    guerrilla_keywords) + ") OR ((" + " OR ".join(
+        schedule_keywords) + ") has:media)) (from:"
 query += " OR from:".join(talents)
 query += ")"
+
+# Matches spaces that:
+# - are from the talents array
 
 spaces_query = "from:" + " OR from:".join(talents)
 

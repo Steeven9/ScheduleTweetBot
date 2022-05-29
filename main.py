@@ -6,7 +6,8 @@ from discord.ext import commands, tasks
 from discord_slash import SlashCommand
 from tweepy.errors import BadRequest, TwitterServerError
 
-from fetcher import fetch_spaces, fetch_tweets
+from fetcher import (fetch_spaces, fetch_tweets, guerrilla_keywords,
+                     schedule_keywords)
 
 # -- Options --
 # Interval between each fetch (in seconds)
@@ -93,16 +94,18 @@ async def send_message(data, channel, tweets_fetched):
         if "RT @" in tweet.text[:4]:
             result += "[{0}] ".format(get_rt_text(tweet))
 
-        if "schedule" in tweet.text.lower() or "weekly" in tweet.text.lower():
-            result += "Schedule tweet"
-        elif "guerilla" in tweet.text.lower(
-        ) or "guerrilla" in tweet.text.lower():
-            result += "Guerilla tweet"
-        else:
-            result += "Tweet"
+        tweet_type = "Tweet"
+        for w in schedule_keywords:
+            if w in tweet.text.lower():
+                tweet_type = "Schedule tweet"
+                break
+        for w in guerrilla_keywords:
+            if w in tweet.text.lower():
+                tweet_type = "Guerilla tweet"
+                break
 
-        result += " from {0} - https://twitter.com/{0}/status/{1}\n".format(
-            users[tweet.author_id].username, tweet.id)
+        result += "{0} from {1} - https://twitter.com/{1}/status/{2}\n".format(
+            tweet_type, users[tweet.author_id].username, tweet.id)
         users_string += users[tweet.author_id].username
         if i < tweets_fetched:
             result += separator + "\n"
