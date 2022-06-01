@@ -17,7 +17,7 @@ You will need a Twitter API Bearer token and the Discord bot token.
 
 Set the following environment variables with the two respective values:
 
-```
+```bash
 TWITTER_BEARER_TOKEN
 HOLOTWEETBOT_TOKEN
 ```
