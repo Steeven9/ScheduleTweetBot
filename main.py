@@ -56,7 +56,7 @@ async def get_and_send_tweets(channel, debug_channel):
     except TwitterServerError as err:
         err_string = "Twitter died: {0}".format(err)
         print(ct, err_string)
-        await debug_channel.send(err_string)
+        #await debug_channel.send(err_string)
         return
     except BadRequest as err:
         err_string = "API error: {0}".format(err)
