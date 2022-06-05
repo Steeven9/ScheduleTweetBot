@@ -69,7 +69,7 @@ async def get_and_send_tweets(channel, debug_channel):
     if spaces_fetched != 0:
         # TODO examine the data and see what it returns
         print(spaces)
-        await send_message(spaces, debug_channel, spaces_fetched)
+        #await send_message(spaces, debug_channel, spaces_fetched)
 
     # Save latest ID to file
     f = open(filename, "w")
