@@ -30,7 +30,6 @@ def fetch_tweets(newest_id, talents):
     query += ")"
     response = client.search_recent_tweets(query,
                                            since_id=newest_id,
-                                           max_results=len(user_names),
                                            expansions=["author_id"])
 
     new_tweets = response.meta["result_count"]

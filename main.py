@@ -6,14 +6,13 @@ from discord.ext import commands, tasks
 from discord_slash import SlashCommand
 from tweepy.errors import BadRequest, TwitterServerError
 
-from data import guerrilla_keywords, schedule_keywords, talents
+from data import (bot_name, channel_id, guerrilla_keywords, role_id,
+                  schedule_keywords, talents)
 from fetcher import fetch_spaces, fetch_tweets, fetch_user_ids
 
 # -- Options --
 # Interval between each fetch (in seconds)
 timeout = 60
-# ID of the channel where to send the notification
-channel_id = getenv("HOLOTWEETBOT_CHANNEL")
 # Filename to store latest tweet ID
 filename = "config/holotweetbot.ini"
 # Separator between tweets
@@ -32,7 +31,7 @@ debug_channel_id = 935532391550820372
 try:
     f = open(filename, "r")
     newest_id = f.read().strip()
-    print("Loaded config from file")
+    print("[{0}] Loaded config from file".format(bot_name))
 except FileNotFoundError:
     makedirs(path.dirname(filename), exist_ok=True)
     newest_id = None
@@ -40,26 +39,26 @@ except FileNotFoundError:
 client = commands.Bot(prefix)
 slash = SlashCommand(client, sync_commands)
 if channel_id == None:
-    raise ValueError("Channel ID not found!")
+    raise ValueError("[{0}] Channel ID not found!".format(bot_name))
 if discord_token == None:
-    raise ValueError("Discord bot token not found!")
+    raise ValueError("[{0}] Discord bot token not found!".format(bot_name))
 talents_data = []
 
 
 async def get_and_send_tweets(channel, debug_channel):
-    global newest_id, talents_data
+    global newest_id
     ct = datetime.now()
     try:
         [tweets, tweets_fetched,
          newest_id] = fetch_tweets(newest_id, talents_data)
         [spaces, spaces_fetched] = fetch_spaces(talents_data)
     except TwitterServerError as err:
-        err_string = "Twitter died: {0}".format(err)
+        err_string = "[{0}] Twitter died: {1}".format(bot_name, err)
         print(ct, err_string)
         #await debug_channel.send(err_string)
         return
     except BadRequest as err:
-        err_string = "API error: {0}".format(err)
+        err_string = "[{0}] API error: {1}".format(bot_name, err)
         print(ct, err_string)
         await debug_channel.send(err_string)
         return
@@ -82,12 +81,8 @@ async def get_and_send_tweets(channel, debug_channel):
 async def send_message(data, channel, tweets_fetched):
     ct = datetime.now()
     # Construct message
-    if channel_id == "882283424457568257":
-        # Specific ping for KFP | The Office
-        schedule_ping = utils.get(channel.guild.roles, id=801317291072946177)
-        result = "{0} ".format(schedule_ping.mention)
-    else:
-        result = ""
+    schedule_ping = utils.get(channel.guild.roles, id=role_id)
+    result = "{0} ".format(schedule_ping.mention)
     tweets = data.data
     users = {user["id"]: user for user in data.includes["users"]}
     i = 1
@@ -115,33 +110,34 @@ async def send_message(data, channel, tweets_fetched):
         i += 1
 
     # Log event
-    print("{0} - {1} found from {2}".format(ct, tweets_fetched, users_string))
+    print("{0} - [{1}] {2} found from {3}".format(ct, bot_name, tweets_fetched,
+                                                  users_string))
 
     # Send Discord message
-    try:
-        await channel.send(result)
-    except errors.HTTPException:
-        print("{0} - {1} skipped due to length from {2}".format(
-            ct, tweets_fetched, users_string))
-        await channel.send(
-            "Too many characters to send in one message, skipping {0} tweets from {1}"
-            .format(tweets_fetched, users_string))
+    if (i > 1):
+        try:
+            await channel.send(result)
+        except errors.HTTPException:
+            print("{0} - [{1}] {2} skipped due to length from {3}".format(
+                ct, bot_name, tweets_fetched, users_string))
+            await channel.send(
+                "Too many characters to send in one message, skipping {0} tweets from {1}"
+                .format(tweets_fetched, users_string))
 
 
 @client.event
 async def on_ready():
     global talents_data
     talents_data, talents_amount = fetch_user_ids()
-    print("Loaded {0} talents".format(talents_amount))
+    print("[{0}] Loaded {1} talents".format(bot_name, talents_amount))
     if talents_amount != len(talents):
-        print(
-            "Error fetching talents data! Found {0} but should be {1}".format(
-                talents_amount, len(talents)))
+        print("[{0}] Error fetching talents data! Found {1} but should be {2}".
+              format(bot_name, talents_amount, len(talents)))
         exit(-1)
 
     await client.change_presence(
         activity=Activity(type=ActivityType.watching, name="tweets for you"))
-    print("Logged in as {0}".format(client.user))
+    print("[{0}] Logged in as {1}".format(bot_name, client.user))
     # Start cron
     check_tweets.start()
 
@@ -152,10 +148,9 @@ async def on_ready():
     description="Get new tweets",
 )
 async def holotweets(ctx):
-    global debug_channel_id
     ct = datetime.now()
-    print("{0} - Command called from server {1} by {2}".format(
-        ct, ctx.guild_id, ctx.author))
+    print("{0} - [{1}] Command called from server {2} by {3}".format(
+        ct, bot_name, ctx.guild_id, ctx.author))
     debug_channel = client.get_channel(int(debug_channel_id))
     tweets_fetched = await get_and_send_tweets(ctx, debug_channel)
     if tweets_fetched == 0:
@@ -165,7 +160,6 @@ async def holotweets(ctx):
 # Main loop that gets the tweets
 @tasks.loop(seconds=timeout)
 async def check_tweets():
-    global channel_id, debug_channel_id
     channel = client.get_channel(int(channel_id))
     debug_channel = client.get_channel(int(debug_channel_id))
     await get_and_send_tweets(channel, debug_channel)

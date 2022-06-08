@@ -1,4 +1,4 @@
-# Debug/local config
+# Config for KFP | The Office
 
 # Myth
 talents = [
@@ -34,9 +34,9 @@ talents += [
     "vestiazeta",
 ]
 
-bot_name = "local"
-channel_id = 935532391550820372
-role_id = 942805359494574111
+bot_name = "KFP"
+channel_id = 882283424457568257
+role_id = 801317291072946177
 
 schedule_keywords = ["schedule", "(s c h e d u l e)", "weekly"]
 guerrilla_keywords = ["guerrilla", "guerilla"]
