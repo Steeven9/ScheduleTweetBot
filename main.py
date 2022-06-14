@@ -27,11 +27,17 @@ discord_token = getenv("HOLOTWEETBOT_TOKEN")
 debug_channel_id = 935532391550820372
 # -- End of options --
 
+
+def get_timestamp():
+    return str(datetime.now())[:-7]
+
+
 # Try to read latest ID from file
 try:
     f = open(filename, "r")
     newest_id = f.read().strip()
-    print("[{0}] Loaded config from file".format(bot_name))
+    print("{0} [{1}] Loaded config from file".format(get_timestamp(),
+                                                     bot_name))
 except FileNotFoundError:
     makedirs(path.dirname(filename), exist_ok=True)
     newest_id = None
@@ -47,19 +53,17 @@ talents_data = []
 
 async def get_and_send_tweets(channel, debug_channel):
     global newest_id
-    ct = datetime.now()
     try:
         [tweets, tweets_fetched,
          newest_id] = fetch_tweets(newest_id, talents_data)
         [spaces, spaces_fetched] = fetch_spaces(talents_data)
     except TwitterServerError as err:
         err_string = "[{0}] Twitter died: {1}".format(bot_name, err)
-        print(ct, err_string)
-        #await debug_channel.send(err_string)
+        print(get_timestamp(), err_string)
         return
     except BadRequest as err:
         err_string = "[{0}] API error: {1}".format(bot_name, err)
-        print(ct, err_string)
+        print(get_timestamp(), err_string)
         await debug_channel.send(err_string)
         return
 
@@ -79,7 +83,6 @@ async def get_and_send_tweets(channel, debug_channel):
 
 
 async def send_message(data, channel, tweets_fetched):
-    ct = datetime.now()
     # Construct message
     schedule_ping = utils.get(channel.guild.roles, id=role_id)
     result = "{0} ".format(schedule_ping.mention)
@@ -110,16 +113,16 @@ async def send_message(data, channel, tweets_fetched):
         i += 1
 
     # Log event
-    print("{0} - [{1}] {2} found from {3}".format(ct, bot_name, tweets_fetched,
-                                                  users_string))
+    print("{0} [{1}] {2} found from {3}".format(get_timestamp(), bot_name,
+                                                tweets_fetched, users_string))
 
     # Send Discord message
     if (i > 1):
         try:
             await channel.send(result)
         except errors.HTTPException:
-            print("{0} - [{1}] {2} skipped due to length from {3}".format(
-                ct, bot_name, tweets_fetched, users_string))
+            print("{0} [{1}] {2} skipped due to length from {3}".format(
+                get_timestamp(), bot_name, tweets_fetched, users_string))
             await channel.send(
                 "Too many characters to send in one message, skipping {0} tweets from {1}"
                 .format(tweets_fetched, users_string))
@@ -129,15 +132,18 @@ async def send_message(data, channel, tweets_fetched):
 async def on_ready():
     global talents_data
     talents_data, talents_amount = fetch_user_ids()
-    print("[{0}] Loaded {1} talents".format(bot_name, talents_amount))
+    print("{0} [{1}] Loaded {2} talents".format(get_timestamp(), bot_name,
+                                                talents_amount))
     if talents_amount != len(talents):
-        print("[{0}] Error fetching talents data! Found {1} but should be {2}".
-              format(bot_name, talents_amount, len(talents)))
+        print(
+            "{0} [{1}] Error fetching talents data! Found {2} but should be {3}"
+            .format(get_timestamp(), bot_name, talents_amount, len(talents)))
         exit(-1)
 
     await client.change_presence(
         activity=Activity(type=ActivityType.watching, name="tweets for you"))
-    print("[{0}] Logged in as {1}".format(bot_name, client.user))
+    print("{0} [{1}] Logged in as {2}".format(get_timestamp(), bot_name,
+                                              client.user))
     # Start cron
     check_tweets.start()
 
@@ -148,9 +154,8 @@ async def on_ready():
     description="Get new tweets",
 )
 async def holotweets(ctx):
-    ct = datetime.now()
-    print("{0} - [{1}] Command called from server {2} by {3}".format(
-        ct, bot_name, ctx.guild_id, ctx.author))
+    print("{0} [{1}] Command called from server {2} by {3}".format(
+        get_timestamp(), bot_name, ctx.guild_id, ctx.author))
     debug_channel = client.get_channel(int(debug_channel_id))
     tweets_fetched = await get_and_send_tweets(ctx, debug_channel)
     if tweets_fetched == 0:
