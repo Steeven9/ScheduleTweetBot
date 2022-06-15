@@ -38,5 +38,5 @@ bot_name = "KFP"
 channel_id = 882283424457568257
 role_id = 801317291072946177
 
-schedule_keywords = ["schedule", "(s c h e d u l e)", "weekly", "missions"]
+schedule_keywords = ["schedule", "weekly", "missions"]
 guerrilla_keywords = ["guerrilla", "guerilla", "gorilla"]
