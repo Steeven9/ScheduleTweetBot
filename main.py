@@ -15,6 +15,7 @@ from fetcher import fetch_spaces, fetch_tweets, fetch_user_ids
 timeout = 60
 # Filename to store latest tweet ID
 filename = "config/holotweetbot.ini"
+spaces_file = "config/holotweetbot_spaces.ini"
 # Separator between tweets
 separator = "---------------------------------"
 # Bot prefix (ignored, we use slash commands)
@@ -69,15 +70,38 @@ async def get_and_send_tweets(channel, debug_channel):
 
     if tweets_fetched != 0:
         await send_message(tweets, channel, tweets_fetched)
+        # Save latest ID to file
+        f = open(filename, "w")
+        f.write(newest_id)
+        f.close()
     if spaces_fetched != 0:
-        # TODO examine the data and see what it returns
         print(spaces)
-        #await send_message(spaces, debug_channel, spaces_fetched)
-
-    # Save latest ID to file
-    f = open(filename, "w")
-    f.write(newest_id)
-    f.close()
+        users = {user["id"]: user for user in spaces.includes["users"]}
+        print(users)
+        schedule_ping = utils.get(channel.guild.roles, id=role_id)
+        result = "{0} ".format(schedule_ping.mention)
+        f = open(spaces_file, "a")
+        existing_spaces = f.read().split("\n")
+        print(existing_spaces)
+        i = 0
+        for space in spaces:
+            if space.id not in existing_spaces:
+                result += "{0} has a {1} space! https://twitter.com/i/spaces/{2}\n".format(
+                    users[i].username, space.state, space.id)
+                # Save current space ID to file
+                f.write(space.id + "\n")
+                i += 1
+        print(result)
+        if (i > 1):
+            try:
+                await channel.send(result)
+            except errors.HTTPException:
+                print("{0} [{1}] {2} spaces skipped due to length".format(
+                    get_timestamp(), bot_name, tweets_fetched))
+                await channel.send(
+                    "Too many characters to send in one message, skipping {0} spaces"
+                    .format(tweets_fetched))
+        f.close()
 
     return tweets_fetched + spaces_fetched
 

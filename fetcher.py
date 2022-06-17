@@ -11,7 +11,7 @@ bearer_token = getenv("TWITTER_BEARER_TOKEN")
 
 if bearer_token == None:
     raise ValueError("Twitter bearer token not found!")
-client = Client(bearer_token, wait_on_rate_limit=True)
+client = Client(bearer_token)
 
 
 # Matches tweets that:
