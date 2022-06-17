@@ -4,8 +4,6 @@ from tweepy import Client
 
 from data import guerrilla_keywords, schedule_keywords, talents
 
-# Separator between tweets
-separator = "---------------------------------"
 # Twitter bearer token
 bearer_token = getenv("TWITTER_BEARER_TOKEN")
 

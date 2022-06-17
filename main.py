@@ -4,7 +4,7 @@ from os import getenv, makedirs, path
 from discord import Activity, ActivityType, errors, utils
 from discord.ext import commands, tasks
 from discord_slash import SlashCommand
-from tweepy.errors import BadRequest, TwitterServerError
+from tweepy.errors import BadRequest, TwitterServerError, TooManyRequests
 
 from data import (bot_name, channel_id, guerrilla_keywords, role_id,
                   schedule_keywords, talents)
@@ -12,7 +12,7 @@ from fetcher import fetch_spaces, fetch_tweets, fetch_user_ids
 
 # -- Options --
 # Interval between each fetch (in seconds)
-timeout = 60
+timeout = 120
 # Filename to store latest tweet ID and fetched spaces
 filename = "config/holotweetbot.ini"
 spaces_file = "config/holotweetbot_spaces.ini"
@@ -58,6 +58,10 @@ async def get_and_send_tweets(channel, debug_channel):
         [spaces, spaces_fetched] = fetch_spaces(talents_data)
     except TwitterServerError as err:
         err_string = "[{0}] Twitter died: {1}".format(bot_name, err)
+        print(get_timestamp(), err_string)
+        return
+    except TooManyRequests as err:
+        err_string = "[{0}] Too many requests: {1}".format(bot_name, err)
         print(get_timestamp(), err_string)
         return
     except BadRequest as err:
