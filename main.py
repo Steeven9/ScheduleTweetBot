@@ -13,11 +13,9 @@ from fetcher import fetch_spaces, fetch_tweets, fetch_user_ids
 # -- Options --
 # Interval between each fetch (in seconds)
 timeout = 60
-# Filename to store latest tweet ID
+# Filename to store latest tweet ID and fetched spaces
 filename = "config/holotweetbot.ini"
 spaces_file = "config/holotweetbot_spaces.ini"
-# Separator between tweets
-separator = "---------------------------------"
 # Bot prefix (ignored, we use slash commands)
 prefix = ".holotweetbot"
 # Set this to True to register slash commands on boot
@@ -128,11 +126,10 @@ async def send_message(data, channel, tweets_fetched):
                 tweet_type = "Guerilla tweet"
                 break
 
-        result += "{0} from {1} - https://twitter.com/{1}/status/{2}\n".format(
+        result += "{0} from {1} - https://twitter.com/{1}/status/{2}\n\n".format(
             tweet_type, users[tweet.author_id].username, tweet.id)
         users_string += users[tweet.author_id].username
         if i < tweets_fetched:
-            result += separator + "\n"
             users_string += ", "
         i += 1
 
