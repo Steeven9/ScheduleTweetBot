@@ -85,7 +85,7 @@ async def get_and_send_tweets(channel, debug_channel):
         existing_spaces = f.read().split("\n")
         print("2 " + str(existing_spaces))
         i = 0
-        for space in spaces:
+        for space in spaces.data:
             if space.id not in existing_spaces:
                 result += "{0} has a {1} space! https://twitter.com/i/spaces/{2}\n".format(
                     users[i].username, space.state, space.id)
