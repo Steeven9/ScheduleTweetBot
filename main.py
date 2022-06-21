@@ -81,12 +81,15 @@ async def get_and_send_tweets(channel, debug_channel):
         users = {user["id"]: user for user in spaces.includes["users"]}
         schedule_ping = utils.get(channel.guild.roles, id=role_id)
         result = "{0} ".format(schedule_ping.mention)
+        print(result)
         f = open(spaces_file, "a")
         existing_spaces = f.read().split("\n")
+        print("aaaa")
         print("2 " + str(existing_spaces))
         i = 0
         for space in spaces.data:
             if space.id not in existing_spaces:
+                print("space")
                 result += "{0} has a {1} space! https://twitter.com/i/spaces/{2}\n".format(
                     users[i].username, space.state, space.id)
                 # Save current space ID to file
