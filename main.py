@@ -77,14 +77,13 @@ async def get_and_send_tweets(channel, debug_channel):
         f.write(newest_id)
         f.close()
     if spaces_fetched != 0:
-        print(spaces)
+        print("1 " + spaces)
         users = {user["id"]: user for user in spaces.includes["users"]}
-        print(users)
         schedule_ping = utils.get(channel.guild.roles, id=role_id)
         result = "{0} ".format(schedule_ping.mention)
         f = open(spaces_file, "a")
         existing_spaces = f.read().split("\n")
-        print(existing_spaces)
+        print("2 " + existing_spaces)
         i = 0
         for space in spaces:
             if space.id not in existing_spaces:
@@ -93,8 +92,8 @@ async def get_and_send_tweets(channel, debug_channel):
                 # Save current space ID to file
                 f.write(space.id + "\n")
                 i += 1
-        print(result)
-        if (i > 1):
+        print("3 " + result)
+        if (i > 0):
             try:
                 await channel.send(result)
             except errors.HTTPException:
