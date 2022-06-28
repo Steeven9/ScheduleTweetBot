@@ -89,7 +89,7 @@ async def get_and_send_tweets(channel, debug_channel):
         i = 0
         for space in spaces.data:
             if space.id not in existing_spaces:
-                result += "{0} has a {1} space! https://twitter.com/i/spaces/{2}\n".format(
+                result += ":bird: {0} has a {1} space! https://twitter.com/i/spaces/{2}\n".format(
                     spaces.includes["users"][i].username, space.state,
                     space.id)
                 # Save current space ID to file
@@ -125,11 +125,11 @@ async def send_message(data, channel, tweets_fetched):
         tweet_type = "Tweet"
         for w in schedule_keywords:
             if w in tweet.text.lower():
-                tweet_type = "Schedule tweet"
+                tweet_type = ":calendar: Schedule tweet"
                 break
         for w in guerrilla_keywords:
             if w in tweet.text.lower():
-                tweet_type = "Guerilla tweet"
+                tweet_type = ":gorilla: Guerilla tweet"
                 break
 
         result += "{0} from {1} - https://twitter.com/{1}/status/{2}\n\n".format(
