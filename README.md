@@ -4,6 +4,9 @@
 [![C/C++ CI](https://github.com/Steeven9/HoloTweetBot/actions/workflows/docker-image.yml/badge.svg)](https://github.com/Steeven9/HoloTweetBot/actions/workflows/docker-image.yml)
 ![](https://img.shields.io/tokei/lines/github/Steeven9/HoloTweetBot)
 
+## :warning: DEPRECATED: this project has been moved to [ScheduleTweetBot](https://github.com/Steeven9/ScheduleTweetBot)
+
+\
 A simple Discord bot to fetch schedule-related Hololive tweets to
 feed our [schedule](https://holocal.moe).
 

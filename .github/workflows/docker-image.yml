@@ -24,6 +24,6 @@ jobs:
       - name: Build and push for KFP
         uses: docker/build-push-action@v2
         with:
-          file: Dockerfile-kfp
+          file: Dockerfile_kfp
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/holotweetbot:kfp
