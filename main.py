@@ -22,15 +22,10 @@ prefix = ".holotweetbot"
 # Set this to True to register slash commands on boot
 sync_commands = True
 # Discord bot token
-discord_token = getenv("HOLOTWEETBOT_TOKEN")
+discord_token = getenv("{0}BOT_TOKEN".format(bot_name.upper()))
 # Debug channel to send errors to (private)
 debug_channel_id = 935532391550820372
 # -- End of options --
-
-
-def get_timestamp():
-    return str(datetime.now())[:-7]
-
 
 # Try to read existing tweets and spaces from files
 f = open(tweets_file, "a+")
@@ -56,16 +51,16 @@ async def get_and_send_tweets(channel, debug_channel):
         [tweets, tweets_fetched] = fetch_tweets_from_list(list_id)
         [spaces, spaces_fetched] = fetch_spaces(talents_data)
     except TwitterServerError as err:
-        err_string = "[{0}] Twitter died: {1}".format(bot_name, err)
-        print(get_timestamp(), err_string)
+        err_string = "Twitter died: {0}".format(err)
+        log(err_string)
         return
     except TooManyRequests as err:
-        err_string = "[{0}] Too many requests: {1}".format(bot_name, err)
-        print(get_timestamp(), err_string)
+        err_string = "Too many requests: {0}".format(err)
+        log(err_string)
         return
     except BadRequest as err:
-        err_string = "[{0}] API error: {1}".format(bot_name, err)
-        print(get_timestamp(), err_string)
+        err_string = "API error: {0}".format(err)
+        log(err_string)
         await debug_channel.send(err_string)
         return
 
@@ -90,8 +85,7 @@ async def get_and_send_tweets(channel, debug_channel):
             try:
                 await channel.send(result)
             except errors.HTTPException:
-                print("{0} [{1}] {2} spaces skipped due to length".format(
-                    get_timestamp(), bot_name, tweets_fetched))
+                log("{0} spaces skipped due to length".format(tweets_fetched))
                 await channel.send(
                     "Too many characters to send in one message, skipping {0} spaces"
                     .format(tweets_fetched))
@@ -143,13 +137,12 @@ async def send_message(data, channel, tweets_fetched):
     # Send Discord message
     if (i > 0):
         # Log event
-        print("{0} [{1}] {2} found from {3}".format(get_timestamp(), bot_name,
-                                                    i, users_string[:-2]))
+        log("{0} found from {1}".format(i, users_string[:-2]))
         try:
             await channel.send(result)
         except errors.HTTPException:
-            print("{0} [{1}] {2} skipped due to length from {3}".format(
-                get_timestamp(), bot_name, tweets_fetched, users_string))
+            log("{0} skipped due to length from {1}".format(
+                tweets_fetched, users_string))
             await channel.send(
                 "Too many characters to send in one message, skipping {0} tweets from {1}"
                 .format(i, users_string))
@@ -159,13 +152,11 @@ async def send_message(data, channel, tweets_fetched):
 async def on_ready():
     global talents_data
     talents_data, talents_amount = fetch_user_ids_from_list(list_id)
-    print("{0} [{1}] Loaded {2} talents".format(get_timestamp(), bot_name,
-                                                talents_amount))
+    log("Loaded {0} talents".format(talents_amount))
 
     await client.change_presence(
         activity=Activity(type=ActivityType.watching, name="tweets for you"))
-    print("{0} [{1}] Logged in as {2}".format(get_timestamp(), bot_name,
-                                              client.user))
+    log("Logged in as {0}".format(client.user))
     # Start cron
     check_tweets.start()
 
@@ -176,8 +167,8 @@ async def on_ready():
     description="Get new tweets",
 )
 async def holotweets(ctx):
-    print("{0} [{1}] Command called from server {2} by {3}".format(
-        get_timestamp(), bot_name, ctx.guild_id, ctx.author))
+    log("Command called from server {0} by {1}".format(ctx.guild_id,
+                                                       ctx.author))
     debug_channel = client.get_channel(int(debug_channel_id))
     tweets_fetched = await get_and_send_tweets(ctx, debug_channel)
     if tweets_fetched == 0:
@@ -200,6 +191,11 @@ def get_rt_text(tweet):
         result += str(tweet)[:pos][pos - 1]
         pos += 1
     return result
+
+
+# Helper to log messages in stdout
+def log(msg):
+    print("{0} [{1}] {2}".format(str(datetime.now())[:-7], bot_name, msg))
 
 
 client.run(discord_token)
