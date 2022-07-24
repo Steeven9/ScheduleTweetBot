@@ -1,21 +1,22 @@
 from datetime import datetime
-from os import getenv, makedirs, path
+from os import getenv
 
 from discord import Activity, ActivityType, errors, utils
 from discord.ext import commands, tasks
 from discord_slash import SlashCommand
-from tweepy.errors import BadRequest, TwitterServerError, TooManyRequests
+from tweepy.errors import BadRequest, TooManyRequests, TwitterServerError
 
-from data import (bot_name, channel_id, guerrilla_keywords, role_id,
-                  schedule_keywords, talents)
-from fetcher import fetch_spaces, fetch_tweets, fetch_user_ids
+from data import (bot_name, channel_id, guerrilla_keywords, list_id, role_id,
+                  schedule_keywords)
+from fetcher import (fetch_spaces, fetch_tweets_from_list,
+                     fetch_user_ids_from_list)
 
 # -- Options --
 # Interval between each fetch (in seconds)
 timeout = 120
-# Filename to store latest tweet ID and fetched spaces
-filename = "config/holotweetbot.ini"
-spaces_file = "config/holotweetbot_spaces.ini"
+# Filenames to store already fetched tweets and spaces
+tweets_file = "config/{0}_tweets.ini".format(bot_name)
+spaces_file = "config/{0}_spaces.ini".format(bot_name)
 # Bot prefix (ignored, we use slash commands)
 prefix = ".holotweetbot"
 # Set this to True to register slash commands on boot
@@ -31,15 +32,14 @@ def get_timestamp():
     return str(datetime.now())[:-7]
 
 
-# Try to read latest ID from file
-try:
-    f = open(filename, "r")
-    newest_id = f.read().strip()
-    print("{0} [{1}] Loaded config from file".format(get_timestamp(),
-                                                     bot_name))
-except FileNotFoundError:
-    makedirs(path.dirname(filename), exist_ok=True)
-    newest_id = None
+# Try to read existing tweets and spaces from files
+f = open(tweets_file, "a+")
+f.seek(0)
+existing_tweets = f.read()[:-1].split("\n")
+f2 = open(spaces_file, "a+")
+f2.seek(0)
+existing_spaces = f2.read()[:-1].split("\n")
+
 # Initialize stuff
 client = commands.Bot(prefix)
 slash = SlashCommand(client, sync_commands)
@@ -49,15 +49,11 @@ if discord_token == None:
     raise ValueError("[{0}] Discord bot token not found!".format(bot_name))
 talents_data = []
 
-# TODO remove
-existing_spaces = []
-
 
 async def get_and_send_tweets(channel, debug_channel):
-    global newest_id, existing_spaces
+    global existing_spaces
     try:
-        [tweets, tweets_fetched,
-         newest_id] = fetch_tweets(newest_id, talents_data)
+        [tweets, tweets_fetched] = fetch_tweets_from_list(list_id)
         [spaces, spaces_fetched] = fetch_spaces(talents_data)
     except TwitterServerError as err:
         err_string = "[{0}] Twitter died: {1}".format(bot_name, err)
@@ -75,26 +71,20 @@ async def get_and_send_tweets(channel, debug_channel):
 
     if tweets_fetched != 0:
         await send_message(tweets, channel, tweets_fetched)
-        # Save latest ID to file
-        f = open(filename, "w")
-        f.write(newest_id)
-        f.close()
+
     if spaces_fetched != 0:
-        print("1 " + str(spaces))
         schedule_ping = utils.get(channel.guild.roles, id=role_id)
         result = "{0} ".format(schedule_ping.mention)
-        # f2 = open(spaces_file, "a")
-        # existing_spaces = f2.read().split("\n")
-        print("2 " + str(existing_spaces))
         i = 0
+
         for space in spaces.data:
-            if space.id not in existing_spaces:
+            if str(space.id) not in existing_spaces:
                 result += ":bird: {0} has a {1} space! https://twitter.com/i/spaces/{2}\n".format(
                     spaces.includes["users"][i].username, space.state,
                     space.id)
                 # Save current space ID to file
-                # f2.write(space.id + "\n")
-                existing_spaces.append(space.id)
+                f2.write(str(space.id) + "\n")
+                existing_spaces.append(str(space.id))
                 i += 1
         if (i > 0):
             try:
@@ -105,7 +95,6 @@ async def get_and_send_tweets(channel, debug_channel):
                 await channel.send(
                     "Too many characters to send in one message, skipping {0} spaces"
                     .format(tweets_fetched))
-        # f2.close()
 
     return tweets_fetched + spaces_fetched
 
@@ -116,35 +105,46 @@ async def send_message(data, channel, tweets_fetched):
     result = "{0} ".format(schedule_ping.mention)
     tweets = data.data
     users = {user["id"]: user for user in data.includes["users"]}
-    i = 1
+    i = 0
     users_string = ""
+    tweet_type = "Tweet"
+    ids = []
+
     for tweet in tweets:
-        if "RT @" in tweet.text[:4]:
-            result += "[{0}] ".format(get_rt_text(tweet))
+        if str(tweet.id) not in existing_tweets:
+            found = False
 
-        tweet_type = "Tweet"
-        for w in schedule_keywords:
-            if w in tweet.text.lower():
-                tweet_type = ":calendar: Schedule tweet"
-                break
-        for w in guerrilla_keywords:
-            if w in tweet.text.lower():
-                tweet_type = ":gorilla: Guerilla tweet"
-                break
+            for w in schedule_keywords:
+                if w in tweet.text.lower():
+                    tweet_type = ":calendar: Schedule tweet"
+                    found = True
+                    break
+            for w in guerrilla_keywords:
+                if w in tweet.text.lower():
+                    tweet_type = ":gorilla: Guerilla tweet"
+                    found = True
+                    break
 
-        result += "{0} from {1} - https://twitter.com/{1}/status/{2}\n\n".format(
-            tweet_type, users[tweet.author_id].username, tweet.id)
-        users_string += users[tweet.author_id].username
-        if i < tweets_fetched:
-            users_string += ", "
-        i += 1
+            if found:
+                if "RT @" in tweet.text[:4]:
+                    result += "[{0}] ".format(get_rt_text(tweet))
+                result += "{0} from {1} - https://twitter.com/{1}/status/{2}\n\n".format(
+                    tweet_type, users[tweet.author_id].username, tweet.id)
+                users_string += users[tweet.author_id].username + ", "
+                i += 1
 
-    # Log event
-    print("{0} [{1}] {2} found from {3}".format(get_timestamp(), bot_name,
-                                                tweets_fetched, users_string))
+            ids.append(tweet.id)
+
+    # Save new IDs to file
+    for id in ids:
+        f.write(str(id) + "\n")
+        existing_tweets.append(str(id))
 
     # Send Discord message
-    if (i > 1):
+    if (i > 0):
+        # Log event
+        print("{0} [{1}] {2} found from {3}".format(get_timestamp(), bot_name,
+                                                    i, users_string[:-2]))
         try:
             await channel.send(result)
         except errors.HTTPException:
@@ -152,20 +152,15 @@ async def send_message(data, channel, tweets_fetched):
                 get_timestamp(), bot_name, tweets_fetched, users_string))
             await channel.send(
                 "Too many characters to send in one message, skipping {0} tweets from {1}"
-                .format(tweets_fetched, users_string))
+                .format(i, users_string))
 
 
 @client.event
 async def on_ready():
     global talents_data
-    talents_data, talents_amount = fetch_user_ids()
+    talents_data, talents_amount = fetch_user_ids_from_list(list_id)
     print("{0} [{1}] Loaded {2} talents".format(get_timestamp(), bot_name,
                                                 talents_amount))
-    if talents_amount != len(talents):
-        print(
-            "{0} [{1}] Error fetching talents data! Found {2} but should be {3}"
-            .format(get_timestamp(), bot_name, talents_amount, len(talents)))
-        exit(-1)
 
     await client.change_presence(
         activity=Activity(type=ActivityType.watching, name="tweets for you"))
