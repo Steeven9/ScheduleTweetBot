@@ -5,7 +5,7 @@
 ![](https://img.shields.io/tokei/lines/github/Steeven9/ScheduleTweetBot)
 
 A simple Discord bot to fetch schedule-related tweets to
-feed our [schedule](https://holocal.moe).
+feed our [Hololive](https://holocal.moe) and [Nijisanji](https://nijien.vercel.app/) calendars.
 
 Profile picture by the one and only [DuDuL](https://twitter.com/DuDuLtv)!
 

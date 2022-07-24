@@ -119,7 +119,7 @@ async def send_message(data, channel, tweets_fetched):
                     found = True
                     break
 
-            if found:
+            if found and "https://t.co/" in tweet.text.lower():
                 if "RT @" in tweet.text[:4]:
                     result += "[{0}] ".format(get_rt_text(tweet))
                 result += "{0} from {1} - https://twitter.com/{1}/status/{2}\n\n".format(
