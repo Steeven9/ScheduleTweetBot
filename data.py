@@ -1,11 +1,15 @@
 # Debug/local config
 
-from data_kfp import guerrilla_keywords, list_id, schedule_keywords
-
+# The bot alias, used for logging. Must match the NAMEBOT_TOKEN variable
 bot_name = "local"
-list_id = list_id
+# The Twitter List ID
+list_id = 1550597761648713728
+# The Discord channel to send the messages to
 channel_id = 935532391550820372
+# The role to ping when a new tweet drops
 role_id = 942805359494574111
 
-schedule_keywords = schedule_keywords
-guerrilla_keywords = guerrilla_keywords
+# An array of keywords to match for schedule tweets
+schedule_keywords = ["schedule", "s c h e d u l e", "weekly", "missions"]
+# Same as above but for guerrilla tweets
+guerrilla_keywords = ["guerrilla", "guerilla", "gorilla"]
