@@ -1,5 +1,5 @@
 from datetime import datetime
-from os import getenv
+from os import getenv, makedirs, path
 
 from discord import Activity, ActivityType, errors, utils
 from discord.ext import commands, tasks
@@ -13,7 +13,7 @@ from fetcher import (fetch_spaces, fetch_tweets_from_list,
 
 # -- Options --
 # Interval between each fetch (in seconds)
-timeout = 120
+timeout = 60
 # Filenames to store already fetched tweets and spaces
 tweets_file = "config/{0}_tweets.ini".format(bot_name)
 spaces_file = "config/{0}_spaces.ini".format(bot_name)
@@ -28,10 +28,19 @@ debug_channel_id = 935532391550820372
 # -- End of options --
 
 # Try to read existing tweets and spaces from files
-f = open(tweets_file, "a+")
+try:
+    f = open(tweets_file, "a+")
+except FileNotFoundError:
+    makedirs(path.dirname(tweets_file), exist_ok=True)
+    f = open(tweets_file, "a+")
 f.seek(0)
 existing_tweets = f.read()[:-1].split("\n")
-f2 = open(spaces_file, "a+")
+
+try:
+    f2 = open(spaces_file, "a+")
+except FileNotFoundError:
+    makedirs(path.dirname(spaces_file), exist_ok=True)
+    f2 = open(spaces_file, "a+")
 f2.seek(0)
 existing_spaces = f2.read()[:-1].split("\n")
 

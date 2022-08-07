@@ -33,7 +33,7 @@ a [Discord bot token](https://www.writebots.com/discord-bot-token).
 
 ## Usage
 
-The bot automatically sends new tweets in the specified channel every 120 seconds
+The bot automatically sends new tweets in the specified channel every 60 seconds
 (the timeout is configurable in `main.py`), pinging the specified role if any keyword matches.
 The watched List and keywords can be set in the `data.py` file.
 

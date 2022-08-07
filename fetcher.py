@@ -39,7 +39,9 @@ def fetch_tweets(newest_id, talents):
 # Fetches tweets from a given List
 def fetch_tweets_from_list(list_id):
     response = client.get_list_tweets(
-        list_id, expansions=["author_id", "attachments.media_keys"])
+        list_id,
+        max_results=10,
+        expansions=["author_id", "attachments.media_keys"])
 
     new_tweets = response.meta["result_count"]
     return [response, new_tweets]
