@@ -66,6 +66,7 @@ async def get_and_send_tweets(channel, debug_channel):
     except TooManyRequests as err:
         err_string = "Too many requests: {0}".format(err)
         log(err_string)
+        await debug_channel.send(err_string)
         return
     except BadRequest as err:
         err_string = "API error: {0}".format(err)
