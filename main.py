@@ -1,5 +1,6 @@
 from datetime import datetime
 from os import getenv, makedirs, path
+from requests import get
 
 from discord import Activity, ActivityType, errors, utils
 from discord.ext import commands, tasks
@@ -25,6 +26,8 @@ sync_commands = True
 discord_token = getenv("{0}BOT_TOKEN".format(bot_name.upper()))
 # Debug channel to send errors to (private)
 debug_channel_id = 935532391550820372
+# Heartbeat URL
+heartbeat_url = getenv("{0}BOT_HEARTBEAT_URL".format(bot_name.upper()))
 # -- End of options --
 
 # Try to read existing tweets and spaces from files
@@ -188,6 +191,9 @@ async def holotweets(ctx):
 # Main loop that gets the tweets
 @tasks.loop(seconds=timeout)
 async def check_tweets():
+    # Send heartbeat
+    if (heartbeat_url is not None):
+        get(heartbeat_url)
     channel = client.get_channel(int(channel_id))
     debug_channel = client.get_channel(int(debug_channel_id))
     await get_and_send_tweets(channel, debug_channel)
