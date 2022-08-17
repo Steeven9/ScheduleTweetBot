@@ -8,8 +8,10 @@ list_id = 1550597761648713728
 channel_id = 935532391550820372
 # The role to ping when a new tweet drops
 role_id = 942805359494574111
+# Whether to include retweets as well
+enable_retweets = False
 
 # An array of keywords to match for schedule tweets
-schedule_keywords = ["schedule", "s c h e d u l e", "weekly", "missions"]
+schedule_keywords = ["schedule", "s c h e d u l e", "weekly"]
 # Same as above but for guerrilla tweets
 guerrilla_keywords = ["guerrilla", "guerilla", "gorilla"]

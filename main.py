@@ -8,7 +8,7 @@ from discord_slash import SlashCommand
 from tweepy.errors import BadRequest, TooManyRequests, TwitterServerError
 
 from data import (bot_name, channel_id, guerrilla_keywords, list_id, role_id,
-                  schedule_keywords)
+                  schedule_keywords, enable_retweets)
 from fetcher import (fetch_spaces, fetch_tweets_from_list,
                      fetch_user_ids_from_list)
 
@@ -122,7 +122,8 @@ async def send_message(data, channel, tweets_fetched):
             found = False
 
             for w in schedule_keywords:
-                if w in tweet.text.lower():
+                if w in tweet.text.lower(
+                ) and "https://t.co/" in tweet.text.lower():
                     tweet_type = ":calendar: Schedule tweet"
                     found = True
                     break
@@ -132,8 +133,10 @@ async def send_message(data, channel, tweets_fetched):
                     found = True
                     break
 
-            if found and "https://t.co/" in tweet.text.lower():
+            if found:
                 if "RT @" in tweet.text[:4]:
+                    if not enable_retweets:
+                        continue
                     result += "[{0}] ".format(get_rt_text(tweet))
                 result += "{0} from {1} - https://twitter.com/{1}/status/{2}\n\n".format(
                     tweet_type, users[tweet.author_id].username, tweet.id)
