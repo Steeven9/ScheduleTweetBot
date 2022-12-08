@@ -17,10 +17,9 @@ client = Client(bearer_token)
 #   OR have a keyword from guerrilla_keywords in them
 # - are not retweets
 # - are from someone in the talents array
+# - are more recent than newest_id
 def fetch_tweets(newest_id, talents):
-    user_names = []
-    for user in talents:
-        user_names.append(user.username)
+    user_names = [user.username for user in talents]
     query = "-is:retweet ((" + " OR ".join(
         guerrilla_keywords) + ") OR ((" + " OR ".join(
             schedule_keywords) + ") has:media)) (from:"

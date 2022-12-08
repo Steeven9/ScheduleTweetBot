@@ -8,3 +8,5 @@ enable_retweets = False
 
 schedule_keywords = ["schedule", "weekly"]
 guerrilla_keywords = ["guerrilla", "guerilla"]
+
+talents = ["Selen_Tatsuki"]
