@@ -205,8 +205,6 @@ async def check_tweets():
     await get_and_send_tweets(channel, debug_channel)
 
 
-client.run(discord_token)
-
 # -- Helper functions --
 
 
@@ -223,3 +221,6 @@ def get_rt_text(tweet):
 # Helper to log messages in stdout
 def log(msg):
     print(f"{str(datetime.now())[:-7]} [{bot_name}] {msg}")
+
+
+client.run(discord_token)

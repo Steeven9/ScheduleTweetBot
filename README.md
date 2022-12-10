@@ -37,7 +37,7 @@ The bot automatically sends new tweets in the specified channel every 60 seconds
 (the timeout is configurable in `main.py`), pinging the specified role if any keyword matches.
 The watched List and keywords can be set in the `data.py` file.
 
-Optionally you can also use `/holotweets` to fetch and display new tweets manually.
+Optionally you can also use `/getTweets` to fetch and display new tweets manually.
 If you don't see the slash command in your server, wait around one hour to allow it
 to sync, or check that you invited the bot with the `applications.commands` scope.
 
