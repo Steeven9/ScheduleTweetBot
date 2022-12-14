@@ -18,8 +18,6 @@ timeout = 60
 # Filenames to store already fetched tweets and spaces
 tweets_file = f"config/{bot_name}_tweets.ini"
 spaces_file = f"config/{bot_name}_spaces.ini"
-# Bot prefix (ignored, we use slash commands)
-prefix = ".holotweetbot"
 # Set this to True to register slash commands on boot
 sync_commands = True
 # Discord bot token
@@ -48,7 +46,7 @@ f2.seek(0)
 existing_spaces = f2.read()[:-1].split("\n")
 
 # Initialize stuff
-client = commands.Bot(prefix)
+client = commands.Bot(None)
 slash = SlashCommand(client, sync_commands)
 if channel_id == None:
     raise ValueError(f"[{bot_name}] Channel ID not found!")
@@ -111,7 +109,7 @@ async def send_spaces_message(spaces, channel, spaces_fetched):
 
 async def send_tweets_message(data, channel, tweets_fetched):
     schedule_ping = utils.get(channel.guild.roles, id=role_id)
-    result = f"{schedule_ping.mention} "
+    result = f"{schedule_ping.mention} " if schedule_ping else " "
     tweets = data.data
     users = {user["id"]: user for user in data.includes["users"]}
     i = 0
@@ -178,7 +176,8 @@ async def on_ready():
         activity=Activity(type=ActivityType.watching, name="tweets for you"))
     log(f"Logged in as {client.user}")
     # Start cron
-    check_tweets.start()
+    if not check_tweets.is_running():
+        check_tweets.start()
 
 
 # Slash command to get tweets manually
