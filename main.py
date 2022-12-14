@@ -46,52 +46,27 @@ f2.seek(0)
 existing_spaces = f2.read()[:-1].split("\n")
 
 # Initialize stuff
-client = commands.Bot(".sch")
-slash = SlashCommand(client, sync_commands)
 if channel_id == None:
     raise ValueError(f"[{bot_name}] Channel ID not found!")
 if discord_token == None:
     raise ValueError(f"[{bot_name}] Discord bot token not found!")
+client = commands.Bot(".sch")
+slash = SlashCommand(client, sync_commands)
+channel = None
+schedule_ping = None
+debug_channel = None
 talents_data = []
 
 
-async def get_and_send_tweets(channel, debug_channel):
-    try:
-        [tweets, tweets_fetched] = fetch_tweets_from_list(list_id)
-        [spaces, spaces_fetched] = fetch_spaces(talents_data)
-    except TwitterServerError as err:
-        err_string = f"Twitter died: {err}"
-        log(err_string)
-        return
-    except TooManyRequests as err:
-        err_string = "Too many requests: {err}"
-        log(err_string)
-        await debug_channel.send(err_string)
-        return
-    except BadRequest as err:
-        err_string = "API error: {err}"
-        log(err_string)
-        await debug_channel.send(err_string)
-        return
-
-    if tweets_fetched != 0:
-        await send_tweets_message(tweets, channel, tweets_fetched)
-
-    if spaces_fetched != 0:
-        await send_spaces_message(spaces, channel, spaces_fetched)
-
-    return tweets_fetched + spaces_fetched
-
-
-async def send_spaces_message(spaces, channel, spaces_fetched):
+# TODO save spaces in file (low prio since they are not so common)
+async def send_spaces_message(data, channel, spaces_fetched):
     global existing_spaces
-    schedule_ping = utils.get(channel.guild.roles, id=role_id)
-    result = f"{schedule_ping.mention} "
+    result = f"{schedule_ping.mention} " if schedule_ping else " "
     i = 0
 
-    for space in spaces.data:
+    for space in data.data:
         if str(space.id) not in existing_spaces:
-            user = spaces.includes["users"][i].username
+            user = data.includes["users"][i].username
             result += f":bird: {user} has a {space.state} space! https://twitter.com/i/spaces/{space.id}\n"
             # Save current space ID to file
             f2.write(str(space.id) + "\n")
@@ -108,7 +83,6 @@ async def send_spaces_message(spaces, channel, spaces_fetched):
 
 
 async def send_tweets_message(data, channel, tweets_fetched):
-    schedule_ping = utils.get(channel.guild.roles, id=role_id)
     result = f"{schedule_ping.mention} " if schedule_ping else " "
     tweets = data.data
     users = {user["id"]: user for user in data.includes["users"]}
@@ -168,29 +142,19 @@ async def send_tweets_message(data, channel, tweets_fetched):
 
 @client.event
 async def on_ready():
-    global talents_data
+    global talents_data, channel, schedule_ping, debug_channel
     talents_data, talents_amount = fetch_user_ids_from_list(list_id)
     log(f"Loaded {talents_amount} talents")
 
     await client.change_presence(
         activity=Activity(type=ActivityType.watching, name="tweets for you"))
     log(f"Logged in as {client.user}")
+    channel = client.get_channel(int(channel_id))
+    schedule_ping = utils.get(channel.guild.roles, id=role_id)
+    debug_channel = client.get_channel(int(debug_channel_id))
     # Start cron
     if not check_tweets.is_running():
         check_tweets.start()
-
-
-# Slash command to get tweets manually
-@slash.slash(
-    name="getTweets",
-    description=f"Get new tweets for {bot_name.upper()}",
-)
-async def holotweets(ctx):
-    log(f"Command called from server {ctx.guild_id} by {ctx.author}")
-    debug_channel = client.get_channel(int(debug_channel_id))
-    tweets_fetched = await get_and_send_tweets(ctx, debug_channel)
-    if tweets_fetched == 0:
-        await ctx.send("Nothing new found")
 
 
 # Main loop that gets the tweets
@@ -199,9 +163,34 @@ async def check_tweets():
     # Send heartbeat
     if (heartbeat_url is not None):
         get(heartbeat_url)
-    channel = client.get_channel(int(channel_id))
-    debug_channel = client.get_channel(int(debug_channel_id))
-    await get_and_send_tweets(channel, debug_channel)
+
+    try:
+        [tweets, tweets_fetched] = fetch_tweets_from_list(list_id)
+        [spaces, spaces_fetched] = fetch_spaces(talents_data)
+    except Exception as err:
+        err_string = f"Error: {err}"
+        log(err_string)
+        await debug_channel.send(err_string)
+        return
+
+    if tweets_fetched != 0:
+        await send_tweets_message(data=tweets,
+                                  channel=channel,
+                                  tweets_fetched=tweets_fetched)
+
+    if spaces_fetched != 0:
+        await send_spaces_message(data=spaces,
+                                  channel=channel,
+                                  spaces_fetched=spaces_fetched)
+
+
+# -- Slash commands --
+
+
+@slash.slash(name="ping", description="Show server latency")
+async def ping(ctx):
+    log(f"Command ping called from server {ctx.guild_id} by {ctx.author}")
+    await ctx.send(f"Pong! ({round(client.latency*1000, 2)}ms)")
 
 
 # -- Helper functions --
