@@ -46,7 +46,7 @@ f2.seek(0)
 existing_spaces = f2.read()[:-1].split("\n")
 
 # Initialize stuff
-client = commands.Bot(None)
+client = commands.Bot(".sch")
 slash = SlashCommand(client, sync_commands)
 if channel_id == None:
     raise ValueError(f"[{bot_name}] Channel ID not found!")
@@ -183,7 +183,7 @@ async def on_ready():
 # Slash command to get tweets manually
 @slash.slash(
     name="getTweets",
-    description="Get new tweets",
+    description=f"Get new tweets for {bot_name.upper()}",
 )
 async def holotweets(ctx):
     log(f"Command called from server {ctx.guild_id} by {ctx.author}")
