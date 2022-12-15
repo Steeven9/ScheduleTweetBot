@@ -18,7 +18,7 @@ client = Client(bearer_token)
 # - are not retweets
 # - are from someone in the talents array
 # - are more recent than newest_id
-def fetch_tweets(newest_id, talents):
+def fetch_tweets(newest_id: str, talents: list) -> list:
     user_names = [user.username for user in talents]
     query = "-is:retweet ((" + " OR ".join(
         guerrilla_keywords) + ") OR ((" + " OR ".join(
@@ -36,7 +36,7 @@ def fetch_tweets(newest_id, talents):
 
 
 # Fetches tweets from a given List
-def fetch_tweets_from_list(list_id):
+def fetch_tweets_from_list(list_id: str) -> list:
     response = client.get_list_tweets(
         list_id,
         max_results=10,
@@ -48,7 +48,7 @@ def fetch_tweets_from_list(list_id):
 
 # Matches spaces that:
 # - are from the talents array
-def fetch_spaces(talents):
+def fetch_spaces(talents: list) -> list:
     user_ids = []
     for user in talents:
         user_ids.append(user.id)
@@ -58,13 +58,13 @@ def fetch_spaces(talents):
 
 
 # Gets data about a list of given username strings
-def fetch_user_ids(talents):
+def fetch_user_ids(talents: list[str]) -> list:
     usernames = ",".join(talents)
     response = client.get_users(usernames=usernames).data
     return [response, len(response)]
 
 
 # Gets members of a List
-def fetch_user_ids_from_list(list_id):
+def fetch_user_ids_from_list(list_id: str) -> list:
     response = client.get_list_members(id=list_id).data
     return [response, len(response)]

@@ -3,9 +3,8 @@ from os import getenv, makedirs, path
 
 from discord import Activity, ActivityType, errors, utils
 from discord.ext import commands, tasks
-from discord_slash import SlashCommand
+from discord_slash import SlashCommand, SlashContext
 from requests import get
-from tweepy.errors import BadRequest, TooManyRequests, TwitterServerError
 
 from data import (bot_name, channel_id, enable_retweets, guerrilla_keywords,
                   list_id, role_id, schedule_keywords)
@@ -26,9 +25,8 @@ discord_token = getenv(f"{bot_name.upper()}BOT_TOKEN")
 debug_channel_id = 935532391550820372
 # Heartbeat URL
 heartbeat_url = getenv(f"{bot_name.upper()}BOT_HEARTBEAT_URL")
-# -- End of options --
 
-# Try to read existing tweets and spaces from files
+# -- Try to read existing tweets and spaces from files --
 try:
     f = open(tweets_file, "a+")
 except FileNotFoundError:
@@ -45,7 +43,7 @@ except FileNotFoundError:
 f2.seek(0)
 existing_spaces = f2.read()[:-1].split("\n")
 
-# Initialize stuff
+# -- Initialize stuff --
 if channel_id == None:
     raise ValueError(f"[{bot_name}] Channel ID not found!")
 if discord_token == None:
@@ -59,7 +57,7 @@ talents_data = []
 
 
 # TODO save spaces in file (low prio since they are not so common)
-async def send_spaces_message(data, channel, spaces_fetched):
+async def send_spaces_message(data, channel, spaces_fetched: int) -> None:
     global existing_spaces
     result = f"{schedule_ping.mention} " if schedule_ping else " "
     i = 0
@@ -82,7 +80,7 @@ async def send_spaces_message(data, channel, spaces_fetched):
             )
 
 
-async def send_tweets_message(data, channel, tweets_fetched):
+async def send_tweets_message(data, channel, tweets_fetched: int) -> None:
     result = f"{schedule_ping.mention} " if schedule_ping else " "
     tweets = data.data
     users = {user["id"]: user for user in data.includes["users"]}
@@ -113,7 +111,7 @@ async def send_tweets_message(data, channel, tweets_fetched):
                         continue
                     result += f"[{get_rt_text(tweet)}] "
                 user = users[tweet.author_id].username
-                result += f"{tweet_type} from {1} - https://twitter.com/{user}/status/{tweet.id}\n\n"
+                result += f"{tweet_type} from {user} - https://twitter.com/{user}/status/{tweet.id}\n\n"
                 users_string += users[tweet.author_id].username + ", "
                 i += 1
 
@@ -141,7 +139,7 @@ async def send_tweets_message(data, channel, tweets_fetched):
 
 
 @client.event
-async def on_ready():
+async def on_ready() -> None:
     global talents_data, channel, schedule_ping, debug_channel
     talents_data, talents_amount = fetch_user_ids_from_list(list_id)
     log(f"Loaded {talents_amount} talents")
@@ -159,7 +157,7 @@ async def on_ready():
 
 # Main loop that gets the tweets
 @tasks.loop(seconds=timeout)
-async def check_tweets():
+async def check_tweets() -> None:
     # Send heartbeat
     if (heartbeat_url is not None):
         get(heartbeat_url)
@@ -188,7 +186,7 @@ async def check_tweets():
 
 
 @slash.slash(name="ping", description="Show server latency")
-async def ping(ctx):
+async def ping(ctx: SlashContext) -> None:
     log(f"Command ping called from server {ctx.guild_id} by {ctx.author}")
     await ctx.send(f"Pong! ({round(client.latency*1000, 2)}ms)")
 
@@ -197,7 +195,7 @@ async def ping(ctx):
 
 
 # Helper to get the "RT @username" string
-def get_rt_text(tweet):
+def get_rt_text(tweet: str) -> str:
     result = ""
     pos = 1
     while str(tweet)[:pos][pos - 1] != ":":
@@ -207,7 +205,7 @@ def get_rt_text(tweet):
 
 
 # Helper to log messages in stdout
-def log(msg):
+def log(msg: str) -> None:
     print(f"{str(datetime.now())[:-7]} [{bot_name}] {msg}")
 
 
