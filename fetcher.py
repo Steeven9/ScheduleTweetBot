@@ -6,6 +6,8 @@ from data import guerrilla_keywords, schedule_keywords
 
 # Twitter bearer token
 bearer_token = getenv("TWITTER_BEARER_TOKEN")
+# Max Twitter query length
+query_max_len = 512
 
 if bearer_token == None:
     raise ValueError("Twitter bearer token not found!")
@@ -19,16 +21,22 @@ client = Client(bearer_token)
 # - are from someone in the talents array
 # - are more recent than newest_id
 def fetch_tweets(newest_id: str, talents: list) -> list:
-    user_names = [user.username for user in talents]
+    # user_names = [user.username for user in talents]
     query = "-is:retweet ((" + " OR ".join(
         guerrilla_keywords) + ") OR ((" + " OR ".join(
             schedule_keywords) + ") has:media)) (from:"
-    query += " OR from:".join(user_names)
+    query += " OR from:".join(talents)
     query += ")"
+
+    # TODO split query in multiple parts
+    if len(query) > query_max_len:
+        raise RuntimeError(
+            f"Query too long ({len(query)} chars, max is {query_max_len}): {query}"
+        )
+
     response = client.search_recent_tweets(query,
                                            since_id=newest_id,
                                            expansions=["author_id"])
-
     new_tweets = response.meta["result_count"]
     if new_tweets != 0:
         newest_id = response.meta["newest_id"]
@@ -49,9 +57,7 @@ def fetch_tweets_from_list(list_id: str) -> list:
 # Matches spaces that:
 # - are from the talents array
 def fetch_spaces(talents: list) -> list:
-    user_ids = []
-    for user in talents:
-        user_ids.append(user.id)
+    user_ids = [user.id for user in talents]
     response = client.get_spaces(user_ids=user_ids, expansions=["creator_id"])
     new_spaces = response.meta["result_count"]
     return [response, new_spaces]

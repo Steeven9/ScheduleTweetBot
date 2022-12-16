@@ -7,9 +7,8 @@ from discord_slash import SlashCommand, SlashContext
 from requests import get
 
 from data import (bot_name, channel_id, enable_retweets, guerrilla_keywords,
-                  list_id, role_id, schedule_keywords)
-from fetcher import (fetch_spaces, fetch_tweets_from_list,
-                     fetch_user_ids_from_list)
+                  list_id, role_id, schedule_keywords, talents)
+from fetcher import fetch_spaces, fetch_tweets, fetch_user_ids_from_list
 
 # -- Options --
 # Interval between each fetch (in seconds)
@@ -54,6 +53,7 @@ channel = None
 schedule_ping = None
 debug_channel = None
 talents_data = []
+newest_id = ""  #TODO read from file
 
 
 # TODO save spaces in file (low prio since they are not so common)
@@ -142,6 +142,10 @@ async def send_tweets_message(data, channel, tweets_fetched: int) -> None:
 async def on_ready() -> None:
     global talents_data, channel, schedule_ping, debug_channel
     talents_data, talents_amount = fetch_user_ids_from_list(list_id)
+    # TODO get rid of the List dependency
+    if len(talents) != talents_amount:
+        raise RuntimeError(
+            f"Found {len(talents)} talents but {talents_amount} in List")
     log(f"Loaded {talents_amount} talents")
 
     await client.change_presence(
@@ -158,12 +162,14 @@ async def on_ready() -> None:
 # Main loop that gets the tweets
 @tasks.loop(seconds=timeout)
 async def check_tweets() -> None:
+    global newest_id
     # Send heartbeat
     if (heartbeat_url is not None):
         get(heartbeat_url)
 
     try:
-        [tweets, tweets_fetched] = fetch_tweets_from_list(list_id)
+        # [tweets, tweets_fetched] = fetch_tweets_from_list(list_id)
+        [tweets, tweets_fetched, newest_id] = fetch_tweets(newest_id, talents)
         [spaces, spaces_fetched] = fetch_spaces(talents_data)
     except Exception as err:
         err_string = f"Error: {err}"
