@@ -25,7 +25,11 @@ talents += [
 ]
 # Noctyx
 talents += [
-    "sonny_brisko", "Fulgur_Ovid", "Yugo_Asuma", "uki_violeta", "alban_knox"
+    "sonny_brisko",
+    "Fulgur_Ovid",
+    "uki_violeta",
+    "alban_knox",
+    # "Yugo_Asuma",
 ]
 # ILUNA
 talents += [

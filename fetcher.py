@@ -21,26 +21,20 @@ client = Client(bearer_token)
 # - are from someone in the talents array
 # - are more recent than newest_id
 def fetch_tweets(newest_id: str, talents: list) -> list:
-    # user_names = [user.username for user in talents]
-    query = "-is:retweet ((" + " OR ".join(
-        guerrilla_keywords) + ") OR ((" + " OR ".join(
-            schedule_keywords) + ") has:media)) (from:"
-    query += " OR from:".join(talents)
-    query += ")"
+    query = build_query(talents)
 
-    # TODO split query in multiple parts
     if len(query) > query_max_len:
-        raise RuntimeError(
-            f"Query too long ({len(query)} chars, max is {query_max_len}): {query}"
-        )
-
-    response = client.search_recent_tweets(query,
-                                           since_id=newest_id,
-                                           expansions=["author_id"])
-    new_tweets = response.meta["result_count"]
-    if new_tweets != 0:
-        newest_id = response.meta["newest_id"]
-    return [response, new_tweets, newest_id]
+        return fetch_tweets(newest_id, talents[:len(talents) // 2])
+        # fetch_tweets(newest_id, talents[len(talents) // 2:])
+        #TODO put together the two responses
+    else:
+        response = client.search_recent_tweets(query,
+                                               since_id=newest_id,
+                                               expansions=["author_id"])
+        new_tweets = response.meta["result_count"]
+        if new_tweets != 0:
+            newest_id = response.meta["newest_id"]
+        return [response, new_tweets, newest_id]
 
 
 # Fetches tweets from a given List
@@ -74,3 +68,16 @@ def fetch_user_ids(talents: list[str]) -> list:
 def fetch_user_ids_from_list(list_id: str) -> list:
     response = client.get_list_members(id=list_id).data
     return [response, len(response)]
+
+
+# Builds the query string for tweets given a talents array
+def build_query(talents: list) -> str:
+    query = "-is:retweet (("
+    query += " OR ".join(guerrilla_keywords)
+    query += ") OR (("
+    query += " OR ".join(schedule_keywords)
+    query += ") has:media)) (from:"
+    query += " OR from:".join(talents)
+    query += ")"
+
+    return query

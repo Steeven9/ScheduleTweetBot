@@ -22,7 +22,7 @@ talents += [
     "hakosbaelz",
     "nanashimumei_en",
     "ourokronii",
-    "tsukumosana",
+    # "tsukumosana",
 ]
 # ID gen 1
 talents += [

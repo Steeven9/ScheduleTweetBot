@@ -28,19 +28,21 @@ heartbeat_url = getenv(f"{bot_name.upper()}BOT_HEARTBEAT_URL")
 # -- Try to read existing tweets and spaces from files --
 try:
     f = open(tweets_file, "a+")
+    f.seek(0)
+    newest_id = f.read().split("\n")[0].strip()
 except FileNotFoundError:
     makedirs(path.dirname(tweets_file), exist_ok=True)
     f = open(tweets_file, "a+")
-f.seek(0)
-existing_tweets = f.read()[:-1].split("\n")
+    newest_id = None
 
 try:
     f2 = open(spaces_file, "a+")
+    f2.seek(0)
+    existing_spaces = f2.read()[:-1].split("\n")
 except FileNotFoundError:
     makedirs(path.dirname(spaces_file), exist_ok=True)
     f2 = open(spaces_file, "a+")
-f2.seek(0)
-existing_spaces = f2.read()[:-1].split("\n")
+    existing_spaces = []
 
 # -- Initialize stuff --
 if channel_id == None:
@@ -53,10 +55,32 @@ channel = None
 schedule_ping = None
 debug_channel = None
 talents_data = []
-newest_id = ""  #TODO read from file
 
 
-# TODO save spaces in file (low prio since they are not so common)
+async def check_tweets() -> list:
+    global newest_id
+    try:
+        [tweets, tweets_fetched, newest_id] = fetch_tweets(newest_id, talents)
+        [spaces, spaces_fetched] = fetch_spaces(talents_data)
+    except Exception as err:
+        err_string = f"Error: {err}"
+        log(err_string)
+        await debug_channel.send(err_string)
+        return [0, 0]
+
+    if tweets_fetched != 0:
+        await send_tweets_message(data=tweets,
+                                  channel=channel,
+                                  tweets_fetched=tweets_fetched)
+
+    if spaces_fetched != 0:
+        await send_spaces_message(data=spaces,
+                                  channel=channel,
+                                  spaces_fetched=spaces_fetched)
+
+    return [tweets_fetched, spaces_fetched]
+
+
 async def send_spaces_message(data, channel, spaces_fetched: int) -> None:
     global existing_spaces
     result = f"{schedule_ping.mention} " if schedule_ping else " "
@@ -87,40 +111,33 @@ async def send_tweets_message(data, channel, tweets_fetched: int) -> None:
     i = 0
     users_string = ""
     tweet_type = "Tweet"
-    ids = []
 
     for tweet in tweets:
-        if str(tweet.id) not in existing_tweets:
-            found = False
+        found = False
 
-            for w in schedule_keywords:
-                if w in tweet.text.lower(
-                ) and "https://t.co/" in tweet.text.lower():
-                    tweet_type = ":calendar: Schedule tweet"
-                    found = True
-                    break
-            for w in guerrilla_keywords:
-                if w in tweet.text.lower():
-                    tweet_type = ":gorilla: Guerilla tweet"
-                    found = True
-                    break
+        for w in schedule_keywords:
+            if w in tweet.text.lower():
+                tweet_type = ":calendar: Schedule tweet"
+                found = True
+                break
+        for w in guerrilla_keywords:
+            if w in tweet.text.lower():
+                tweet_type = ":gorilla: Guerilla tweet"
+                found = True
+                break
 
-            if found:
-                if "RT @" in tweet.text[:4]:
-                    if not enable_retweets:
-                        continue
-                    result += f"[{get_rt_text(tweet)}] "
-                user = users[tweet.author_id].username
-                result += f"{tweet_type} from {user} - https://twitter.com/{user}/status/{tweet.id}\n\n"
-                users_string += users[tweet.author_id].username + ", "
-                i += 1
+        if found:
+            if "RT @" in tweet.text[:4]:
+                if not enable_retweets:
+                    continue
+                result += f"[{get_rt_text(tweet)}] "
+            user = users[tweet.author_id].username
+            result += f"{tweet_type} from {user} - https://twitter.com/{user}/status/{tweet.id}\n\n"
+            users_string += users[tweet.author_id].username + ", "
+            i += 1
 
-            ids.append(tweet.id)
-
-    # Save new IDs to file
-    for id in ids:
-        f.write(str(id) + "\n")
-        existing_tweets.append(str(id))
+    # Save new ID to file
+    f.write(str(newest_id) + "\n")
 
     # Send Discord message
     if (i > 0):
@@ -142,7 +159,7 @@ async def send_tweets_message(data, channel, tweets_fetched: int) -> None:
 async def on_ready() -> None:
     global talents_data, channel, schedule_ping, debug_channel
     talents_data, talents_amount = fetch_user_ids_from_list(list_id)
-    # TODO get rid of the List dependency
+
     if len(talents) != talents_amount:
         raise RuntimeError(
             f"Found {len(talents)} talents but {talents_amount} in List")
@@ -155,37 +172,17 @@ async def on_ready() -> None:
     schedule_ping = utils.get(channel.guild.roles, id=role_id)
     debug_channel = client.get_channel(int(debug_channel_id))
     # Start cron
-    if not check_tweets.is_running():
-        check_tweets.start()
+    if not check_tweets_loop.is_running():
+        check_tweets_loop.start()
 
 
 # Main loop that gets the tweets
 @tasks.loop(seconds=timeout)
-async def check_tweets() -> None:
-    global newest_id
+async def check_tweets_loop() -> list:
     # Send heartbeat
     if (heartbeat_url is not None):
         get(heartbeat_url)
-
-    try:
-        # [tweets, tweets_fetched] = fetch_tweets_from_list(list_id)
-        [tweets, tweets_fetched, newest_id] = fetch_tweets(newest_id, talents)
-        [spaces, spaces_fetched] = fetch_spaces(talents_data)
-    except Exception as err:
-        err_string = f"Error: {err}"
-        log(err_string)
-        await debug_channel.send(err_string)
-        return
-
-    if tweets_fetched != 0:
-        await send_tweets_message(data=tweets,
-                                  channel=channel,
-                                  tweets_fetched=tweets_fetched)
-
-    if spaces_fetched != 0:
-        await send_spaces_message(data=spaces,
-                                  channel=channel,
-                                  spaces_fetched=spaces_fetched)
+    await check_tweets()
 
 
 # -- Slash commands --
@@ -193,8 +190,16 @@ async def check_tweets() -> None:
 
 @slash.slash(name="ping", description="Show server latency")
 async def ping(ctx: SlashContext) -> None:
-    log(f"Command ping called from server {ctx.guild_id} by {ctx.author}")
+    log(f"Command `ping` called from server {ctx.guild_id} by {ctx.author}")
     await ctx.send(f"Pong! ({round(client.latency*1000, 2)}ms)")
+
+
+@slash.slash(name="fetch", description="Manually fetch data")
+async def ping(ctx: SlashContext) -> None:
+    log(f"Command `fetch` called from server {ctx.guild_id} by {ctx.author}")
+    [tweets_fetched, spaces_fetched] = await check_tweets()
+    await ctx.send(f"Found {tweets_fetched} tweets and {spaces_fetched} spaces"
+                   )
 
 
 # -- Helper functions --
