@@ -195,11 +195,17 @@ async def ping(ctx: SlashContext) -> None:
 
 
 @slash.slash(name="fetch", description="Manually fetch data")
-async def ping(ctx: SlashContext) -> None:
+async def fetch(ctx: SlashContext) -> None:
     log(f"Command `fetch` called from server {ctx.guild_id} by {ctx.author}")
     [tweets_fetched, spaces_fetched] = await check_tweets()
     await ctx.send(f"Found {tweets_fetched} tweets and {spaces_fetched} spaces"
                    )
+
+
+@slash.slash(name="list", description="List watched talents")
+async def list(ctx: SlashContext) -> None:
+    log(f"Command `list` called from server {ctx.guild_id} by {ctx.author}")
+    await ctx.send(f"Watching {len(talents)} talents: {', '.join(talents)}")
 
 
 # -- Helper functions --

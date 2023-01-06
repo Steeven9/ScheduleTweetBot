@@ -44,3 +44,5 @@ talents += [
 ]
 # TEMPUS
 talents += ["noirvesper_en", "axelsyrios", "magnidezmond", "regisaltare"]
+# TEMPUS... part 2?
+talents += ["gavisbettel", "machinaxflayon", "banzoinhakka", "josuijishinri"]
