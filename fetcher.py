@@ -24,9 +24,21 @@ def fetch_tweets(newest_id: str, talents: list) -> list:
     query = build_query(talents)
 
     if len(query) > query_max_len:
-        return fetch_tweets(newest_id, talents[:len(talents) // 2])
-        # fetch_tweets(newest_id, talents[len(talents) // 2:])
-        #TODO put together the two responses
+        [res1, new_tweets1,
+         newest_id1] = fetch_tweets(newest_id, talents[:len(talents) // 2])
+        [res2, new_tweets2,
+         newest_id2] = fetch_tweets(newest_id, talents[len(talents) // 2:])
+
+        response = {
+            "data": (res1.data if res1.data else []) +
+            (res2.data if res2.data else []),
+            "includes": {
+                "users": (res1.includes["users"] if res1.includes else []) +
+                (res2.includes["users"] if res2.includes else [])
+            }
+        }
+        newest_id = newest_id1 if newest_id1 > newest_id2 else newest_id2
+        return [response, new_tweets1 + new_tweets2, newest_id]
     else:
         response = client.search_recent_tweets(query,
                                                since_id=newest_id,

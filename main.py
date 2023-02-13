@@ -6,8 +6,9 @@ from discord.ext import commands, tasks
 from discord_slash import SlashCommand, SlashContext
 from requests import get
 
-from data import (bot_name, channel_id, enable_retweets, guerrilla_keywords,
-                  list_id, role_id, schedule_keywords, talents)
+from data import (bot_name, channel_id, enable_retweets, extra_pings,
+                  guerrilla_keywords, list_id, role_id, schedule_keywords,
+                  talents)
 from fetcher import fetch_spaces, fetch_tweets, fetch_user_ids_from_list
 
 # -- Options --
@@ -27,12 +28,11 @@ heartbeat_url = getenv(f"{bot_name.upper()}BOT_HEARTBEAT_URL")
 
 # -- Try to read existing tweets and spaces from files --
 try:
-    f = open(tweets_file, "a+")
-    f.seek(0)
-    newest_id = f.read().split("\n")[0].strip()
+    f = open(tweets_file, "r")
+    newest_id = f.read().strip()
+    f.close()
 except FileNotFoundError:
     makedirs(path.dirname(tweets_file), exist_ok=True)
-    f = open(tweets_file, "a+")
     newest_id = None
 
 try:
@@ -86,9 +86,9 @@ async def send_spaces_message(data, channel, spaces_fetched: int) -> None:
     result = f"{schedule_ping.mention} " if schedule_ping else " "
     i = 0
 
-    for space in data.data:
+    for space in data["data"]:
         if str(space.id) not in existing_spaces:
-            user = data.includes["users"][i].username
+            user = data["includes"]["users"][i].username
             result += f":bird: {user} has a {space.state} space! https://twitter.com/i/spaces/{space.id}\n"
             # Save current space ID to file
             f2.write(str(space.id) + "\n")
@@ -105,9 +105,10 @@ async def send_spaces_message(data, channel, spaces_fetched: int) -> None:
 
 
 async def send_tweets_message(data, channel, tweets_fetched: int) -> None:
-    result = f"{schedule_ping.mention} " if schedule_ping else " "
-    tweets = data.data
-    users = {user["id"]: user for user in data.includes["users"]}
+    ping = f"{schedule_ping.mention} " if schedule_ping else ""
+    result = ""
+    tweets = data["data"]
+    users = {user["id"]: user for user in data["includes"]["users"]}
     i = 0
     users_string = ""
     tweet_type = "Tweet"
@@ -130,21 +131,36 @@ async def send_tweets_message(data, channel, tweets_fetched: int) -> None:
             if "RT @" in tweet.text[:4]:
                 if not enable_retweets:
                     continue
-                result += f"[{get_rt_text(tweet)}] "
+                ping += f"[{get_rt_text(tweet)}] "
             user = users[tweet.author_id].username
-            result += f"{tweet_type} from {user} - https://twitter.com/{user}/status/{tweet.id}\n\n"
+            tweet_string = f"{tweet_type} from {user} - https://twitter.com/{user}/status/{tweet.id}\n\n"
+            result += tweet_string
             users_string += users[tweet.author_id].username + ", "
             i += 1
 
+            for extra_ping in extra_pings:
+                if user == extra_ping["talent"]:
+                    log(f"Sending extra ping for {user}")
+                    ch = client.get_channel(
+                        extra_ping["channel"]
+                    ) if extra_ping["role"] else await client.fetch_user(
+                        extra_ping["channel"])
+                    sch_ping = utils.get(
+                        ch.guild.roles, id=extra_ping["role"]
+                    ).mention if extra_ping["role"] else ""
+                    await ch.send(sch_ping + tweet_string)
+
     # Save new ID to file
-    f.write(str(newest_id) + "\n")
+    f = open(tweets_file, "w")
+    f.write(newest_id)
+    f.close()
 
     # Send Discord message
     if (i > 0):
         # Log event
         log(f"{i} found from {users_string[:-2]}")
         try:
-            await channel.send(result)
+            await channel.send(ping + result)
         except errors.HTTPException:
             log(f"{tweets_fetched} skipped due to length from {users_string}")
             await channel.send(
