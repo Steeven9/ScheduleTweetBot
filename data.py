@@ -49,7 +49,17 @@ talents += [
     "kobokanaeru",
     "vestiazeta",
 ]
-# TEMPUS
+# TEMPUS HQ
 talents += ["noirvesper_en", "axelsyrios", "magnidezmond", "regisaltare"]
-# TEMPUS... part 2?
+# TEMPUS Vanguard
 talents += ["gavisbettel", "machinaxflayon", "banzoinhakka", "josuijishinri"]
+
+extra_pings = [{
+    "talent": "ninomaeinanis",
+    "channel": 225654873599901696,
+    "role": None
+}, {
+    "talent": "gavisbettel",
+    "channel": 225654873599901696,
+    "role": None
+}]

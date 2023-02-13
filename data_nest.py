@@ -41,3 +41,9 @@ talents += [
     "ZaionLanZa", "D_Dropscythe", "MelocoKyoran", "HexHaywire",
     "KotokaTorahime", "Ver_Vermillion"
 ]
+
+extra_pings = [{
+    "talent": "Selen_Tatsuki",
+    "channel": 980608534200877096,
+    "role": 981360473003937824
+}]

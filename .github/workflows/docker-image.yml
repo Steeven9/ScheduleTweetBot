@@ -34,18 +34,4 @@ jobs:
           file: Dockerfile_nest
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/scheduletweetbot:nest
-
-  build-dps:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Login to DockerHub
-        uses: docker/login-action@v1
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build and push for DPS
-        uses: docker/build-push-action@v2
-        with:
-          file: Dockerfile_dps
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/scheduletweetbot:dps
+  
