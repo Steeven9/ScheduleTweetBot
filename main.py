@@ -59,14 +59,14 @@ talents_data = []
 
 async def check_tweets() -> list:
     global newest_id
-    try:
-        [tweets, tweets_fetched, newest_id] = fetch_tweets(newest_id, talents)
-        [spaces, spaces_fetched] = fetch_spaces(talents_data)
-    except Exception as err:
-        err_string = f"Error: {err}"
-        log(err_string)
-        await debug_channel.send(err_string)
-        return [0, 0]
+    # try:
+    [tweets, tweets_fetched, newest_id] = fetch_tweets(newest_id, talents)
+    [spaces, spaces_fetched] = fetch_spaces(talents_data)
+    # except Exception as err:
+    #     err_string = f"Error: {err}"
+    #     log(err_string)
+    #     await debug_channel.send(err_string)
+    #     return [0, 0]
 
     if tweets_fetched != 0:
         await send_tweets_message(data=tweets,
