@@ -1,5 +1,6 @@
 from datetime import datetime
 from os import getenv, makedirs, path
+from traceback import print_exc
 
 from discord import Activity, ActivityType, errors, utils
 from discord.ext import commands, tasks
@@ -59,14 +60,15 @@ talents_data = []
 
 async def check_tweets() -> list:
     global newest_id
-    # try:
-    [tweets, tweets_fetched, newest_id] = fetch_tweets(newest_id, talents)
-    [spaces, spaces_fetched] = fetch_spaces(talents_data)
-    # except Exception as err:
-    #     err_string = f"Error: {err}"
-    #     log(err_string)
-    #     await debug_channel.send(err_string)
-    #     return [0, 0]
+    try:
+        [tweets, tweets_fetched, newest_id] = fetch_tweets(newest_id, talents)
+        [spaces, spaces_fetched] = fetch_spaces(talents_data)
+    except Exception as err:
+        print_exc()
+        err_string = f"Error: {err}"
+        log(err_string)
+        await debug_channel.send(err_string)
+        return [0, 0]
 
     if tweets_fetched != 0:
         await send_tweets_message(data=tweets,
@@ -148,7 +150,13 @@ async def send_tweets_message(data, channel, tweets_fetched: int) -> None:
                     sch_ping = utils.get(
                         ch.guild.roles, id=extra_ping["role"]
                     ).mention if extra_ping["role"] else ""
-                    await ch.send(sch_ping + tweet_string)
+                    try:
+                        await ch.send(sch_ping + tweet_string)
+                    except Exception as err:
+                        print_exc()
+                        err_string = f"Error: {err}"
+                        log(err_string)
+                        await debug_channel.send(err_string)
 
     # Save new ID to file
     f = open(tweets_file, "w")
@@ -162,9 +170,10 @@ async def send_tweets_message(data, channel, tweets_fetched: int) -> None:
         try:
             await channel.send(ping + result)
         except errors.HTTPException:
-            log(f"{tweets_fetched} skipped due to length from {users_string}")
+            log(f"{tweets_fetched} skipped due to length from {users_string[:-2]}"
+                )
             await channel.send(
-                f"Too many characters to send in one message, skipping {i} tweets from {users_string}"
+                f"Too many characters to send in one message, skipping {i} tweets from {users_string[:-2]}"
             )
 
 

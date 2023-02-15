@@ -42,6 +42,7 @@ def fetch_tweets(newest_id: str, talents: list) -> list:
     else:
         response = client.search_recent_tweets(query,
                                                since_id=newest_id,
+                                               max_results=40,
                                                expansions=["author_id"])
         new_tweets = response.meta["result_count"]
         if new_tweets != 0:
