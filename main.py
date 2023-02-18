@@ -88,9 +88,9 @@ async def send_spaces_message(data, channel, spaces_fetched: int) -> None:
     result = f"{schedule_ping.mention} " if schedule_ping else " "
     i = 0
 
-    for space in data["data"]:
+    for space in data.data:
         if str(space.id) not in existing_spaces:
-            user = data["includes"]["users"][i].username
+            user = data.includes["users"][i].username
             result += f":bird: {user} has a {space.state} space! https://twitter.com/i/spaces/{space.id}\n"
             # Save current space ID to file
             f2.write(str(space.id) + "\n")
@@ -100,6 +100,7 @@ async def send_spaces_message(data, channel, spaces_fetched: int) -> None:
         try:
             await channel.send(result)
         except errors.HTTPException:
+            print_exc()
             log(f"{spaces_fetched} spaces skipped due to length")
             await channel.send(
                 f"Too many characters to send in one message, skipping {spaces_fetched} spaces"
@@ -170,6 +171,7 @@ async def send_tweets_message(data, channel, tweets_fetched: int) -> None:
         try:
             await channel.send(ping + result)
         except errors.HTTPException:
+            print_exc()
             log(f"{tweets_fetched} skipped due to length from {users_string[:-2]}"
                 )
             await channel.send(
