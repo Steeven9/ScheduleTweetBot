@@ -154,7 +154,7 @@ async def send_tweets_message(data, channel, tweets_fetched: int) -> None:
                         await ch.send(sch_ping + tweet_string)
                     except Exception as err:
                         print_exc()
-                        err_string = f"Error: {err}"
+                        err_string = f"Error: {err} sending ping to {extra_ping['channel']} for {user}"
                         log(err_string)
                         await debug_channel.send(err_string)
 
@@ -188,7 +188,7 @@ async def on_ready() -> None:
     if len(talents) != talents_amount:
         raise RuntimeError(
             f"Found {len(talents)} talents but {talents_amount} in List")
-    log(f"Loaded {talents_amount} talents")
+    log(f"Loaded {talents_amount} talents and {len(extra_pings)} extra pings")
 
     await client.change_presence(
         activity=Activity(type=ActivityType.watching, name="tweets for you"))
