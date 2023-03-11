@@ -38,8 +38,12 @@ talents += [
 ]
 # XSOLEIL
 talents += [
-    "ZaionLanZa", "D_Dropscythe", "MelocoKyoran", "HexHaywire",
-    "KotokaTorahime", "Ver_Vermillion"
+    # "ZaionLanZa",
+    "D_Dropscythe",
+    "MelocoKyoran",
+    "HexHaywire",
+    "KotokaTorahime",
+    "Ver_Vermillion"
 ]
 
 extra_pings = [{
