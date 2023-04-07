@@ -16,7 +16,9 @@ a [Discord bot token](https://www.writebots.com/discord-bot-token).
 
 3. Clone the repo and install the requirements:
 
-    `pip install --no-cache-dir -r requirements.txt`
+    ```bash
+    pip install --no-cache-dir -r requirements.txt
+    ```
 
 4. Set the following environment variables with the two respective values:
 
@@ -55,13 +57,14 @@ files (configurable in `main.py` as well).
 Create a `.env` file with the environment variables mentioned in step 4,
 then build or pull the image and run it:
 
-`docker build . -t scheduletweetbot`
-
-`docker run --name scheduletweetbot --env-file .env scheduletweetbot`
+```bash
+    docker build . -t scheduletweetbot
+    docker run --name scheduletweetbot --env-file .env scheduletweetbot
+```
 
 ## Credits
 
 Profile picture by the one and only [DuDuL](https://twitter.com/DuDuLtv)!
 
-Huge thanks to the team at KFP | The Office for helping with debugging
+Huge thanks to the team at `KFP | The Office` for helping with debugging
 and feature suggestions.
