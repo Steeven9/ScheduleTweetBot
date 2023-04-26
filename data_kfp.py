@@ -7,7 +7,7 @@ role_id = 801317291072946177
 enable_retweets = False
 
 schedule_keywords = ["schedule", "weekly"]
-guerrilla_keywords = ["guerrilla", "guerilla", "gorilla"]
+guerrilla_keywords = ["guerrilla", "guerilla", "gorilla", "🦍"]
 
 # Myth
 talents = [

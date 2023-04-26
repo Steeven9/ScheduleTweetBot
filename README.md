@@ -64,7 +64,7 @@ then build or pull the image and run it:
 
 ## Credits
 
-Profile picture by the one and only [DuDuL](https://twitter.com/DuDuLtv)!
+Logo by the one and only [DuDuL](https://twitter.com/DuDuLtv)!
 
 Huge thanks to the team at `KFP | The Office` for helping with debugging
 and feature suggestions.

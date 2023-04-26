@@ -14,7 +14,7 @@ enable_retweets = False
 # An array of keywords to match for schedule tweets
 schedule_keywords = ["schedule", "weekly"]
 # Same as above but for guerrilla tweets
-guerrilla_keywords = ["guerrilla", "guerilla", "gorilla"]
+guerrilla_keywords = ["guerrilla", "guerilla", "gorilla", "🦍"]
 
 # Myth
 talents = [
