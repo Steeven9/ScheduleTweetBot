@@ -11,48 +11,8 @@ role_id = 942805359494574111
 # Whether to include retweets as well
 enable_retweets = False
 
-# An array of keywords to match for schedule tweets
-schedule_keywords = ["schedule", "weekly"]
-# Same as above but for guerrilla tweets
-guerrilla_keywords = ["guerrilla", "guerilla", "gorilla", "🦍"]
-
-# Myth
-talents = [
-    "gawrgura", "moricalliope", "ninomaeinanis", "takanashikiara",
-    "watsonameliaEN"
-]
-# Hope
-talents += ["irys_en"]
-# Council
-talents += [
-    "ceresfauna",
-    "hakosbaelz",
-    "nanashimumei_en",
-    "ourokronii",
-    # "tsukumosana",
-]
-# ID gen 1
-talents += [
-    "ayunda_risu",
-    "airaniiofifteen",
-    "moonahoshinova",
-]
-# ID gen 2
-talents += [
-    "anyamelfissa",
-    "kureijiollie",
-    "pavoliareine",
-]
-# ID gen 3
-talents += [
-    "kaelakovalskia",
-    "kobokanaeru",
-    "vestiazeta",
-]
-# TEMPUS HQ
-talents += ["noirvesper_en", "axelsyrios", "magnidezmond", "regisaltare"]
-# TEMPUS Vanguard
-talents += ["gavisbettel", "machinaxflayon", "banzoinhakka", "josuijishinri"]
+# URL from where to fetch tweets
+api_url = "https://blooop.moe/tweetsByServer/KFP"
 
 extra_pings = [{
     "talent": "ninomaeinanis",

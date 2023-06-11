@@ -9,32 +9,23 @@ feed our [Hololive](https://holocal.moe) and [Nijisanji](https://nijien.vercel.a
 
 ## Setup
 
-1. Obtain a [Twitter API Bearer token](https://developer.twitter.com/en/docs/twitter-api) and
-a [Discord bot token](https://www.writebots.com/discord-bot-token).
+1. Obtain a [Discord bot token](https://www.writebots.com/discord-bot-token).
 
-2. Create a Twitter List with all the talents you want to monitor and save its id.
-
-3. Clone the repo and install the requirements:
+2. Clone the repo and install the requirements:
 
     ```bash
     pip install --no-cache-dir -r requirements.txt
     ```
 
-4. Set the following environment variables with the two respective values:
+3. Set the NAMEBOT_TOKEN environment variables with the token from step 1.
+   Note: `NAME` is the alias you want to set for the bot (must match `bot_name` in `data.py`).
+
+4. Customize the configuration for scraping and notifying: edit the `data.py` file and fill in all the values.
+
+5. Finally, run `python main.py`. If everything went well, you should see an output similar to this:
 
     ```bash
-    TWITTER_BEARER_TOKEN
-    NAMEBOT_TOKEN
-    ```
-
-    Note: `NAME` is the alias you want to set for the bot (must match `bot_name` in `data.py`).
-
-5. Customize the configuration for scraping and notifying: edit the `data.py` file and fill in all the values.
-
-6. Finally, run `python main.py`. If everything went well, you should see an output similar to this:
-
-    ```bash
-    2023-02-18 00:26:56 [NAME] Loaded 27 talents and 2 extra pings
+    2023-02-18 00:26:56 [NAME] Loaded <n> extra pings
     2023-02-18 00:26:56 [NAME] Logged in as <your bot name and ID>
     ```
 
@@ -54,7 +45,7 @@ files (configurable in `main.py` as well).
 
 ## Run in Docker
 
-Create a `.env` file with the environment variables mentioned in step 4,
+Create a `.env` file with the environment variables mentioned in step 3,
 then build or pull the image and run it:
 
 ```bash
@@ -66,5 +57,7 @@ then build or pull the image and run it:
 
 Logo by the one and only [DuDuL](https://twitter.com/DuDuLtv)!
 
-Huge thanks to the team at `KFP | The Office` for helping with debugging
-and feature suggestions.
+Twitter data is provided by [blooop](https://github.com/Steeven9/blooop).
+
+Huge thanks to the teams of `KFP | The Office` and `Nijisanji EN Schedule Team`
+for helping with debugging and feature suggestions.

@@ -7,10 +7,8 @@ from discord.ext import commands, tasks
 from discord_slash import SlashCommand, SlashContext
 from requests import get
 
-from data import (bot_name, channel_id, enable_retweets, extra_pings,
-                  guerrilla_keywords, list_id, role_id, schedule_keywords,
-                  talents)
-from fetcher import fetch_spaces, fetch_tweets, fetch_user_ids_from_list
+from data import bot_name, channel_id, enable_retweets, extra_pings, role_id
+from fetcher import fetch_spaces, fetch_tweets
 
 # -- Options --
 # Interval between each fetch (in seconds)
@@ -61,8 +59,8 @@ talents_data = []
 async def check_tweets() -> list:
     global newest_id
     try:
-        [tweets, tweets_fetched, newest_id] = fetch_tweets(newest_id, talents)
-        [spaces, spaces_fetched] = fetch_spaces(talents_data)
+        [tweets, tweets_fetched, newest_id] = fetch_tweets(newest_id)
+        [spaces, spaces_fetched] = [[], 0]  #fetch_spaces(talents_data)
     except Exception as err:
         print_exc()
         err_string = f"Error: {err}"
@@ -110,54 +108,37 @@ async def send_spaces_message(data, channel, spaces_fetched: int) -> None:
 async def send_tweets_message(data, channel, tweets_fetched: int) -> None:
     ping = f"{schedule_ping.mention} " if schedule_ping else ""
     result = ""
-    tweets = data["data"]
-    users = {user["id"]: user for user in data["includes"]["users"]}
     i = 0
     users_string = ""
     tweet_type = "Tweet"
 
-    for tweet in tweets:
-        found = False
+    for tweet in data:
+        if "RT @" in tweet["content"][:4]:
+            if not enable_retweets:
+                continue
+            ping += f"[{get_rt_text(tweet)}] "
+        user = tweet["talent"]
+        tweet_string = f"{tweet_type} from {user} - https://twitter.com/{user}/status/{tweet['id']}\n\n"
+        result += tweet_string
+        users_string += user + ", "
+        i += 1
 
-        for w in schedule_keywords:
-            if w in tweet.text.lower():
-                tweet_type = ":calendar: Schedule tweet"
-                found = True
-                break
-        for w in guerrilla_keywords:
-            if w in tweet.text.lower():
-                tweet_type = ":gorilla: Guerilla tweet"
-                found = True
-                break
-
-        if found:
-            if "RT @" in tweet.text[:4]:
-                if not enable_retweets:
-                    continue
-                ping += f"[{get_rt_text(tweet)}] "
-            user = users[tweet.author_id].username
-            tweet_string = f"{tweet_type} from {user} - https://twitter.com/{user}/status/{tweet.id}\n\n"
-            result += tweet_string
-            users_string += users[tweet.author_id].username + ", "
-            i += 1
-
-            for extra_ping in extra_pings:
-                if user == extra_ping["talent"]:
-                    log(f"Sending extra ping for {user}")
-                    ch = client.get_channel(
-                        extra_ping["channel"]
-                    ) if extra_ping["role"] else await client.fetch_user(
-                        extra_ping["channel"])
-                    sch_ping = utils.get(
-                        ch.guild.roles, id=extra_ping["role"]
-                    ).mention if extra_ping["role"] else ""
-                    try:
-                        await ch.send(sch_ping + tweet_string)
-                    except Exception as err:
-                        print_exc()
-                        err_string = f"Error: {err} sending ping to {extra_ping['channel']} for {user}"
-                        log(err_string)
-                        await debug_channel.send(err_string)
+        for extra_ping in extra_pings:
+            if user == extra_ping["talent"]:
+                log(f"Sending extra ping for {user}")
+                ch = client.get_channel(
+                    extra_ping["channel"]
+                ) if extra_ping["role"] else await client.fetch_user(
+                    extra_ping["channel"])
+                sch_ping = utils.get(ch.guild.roles, id=extra_ping["role"]
+                                     ).mention if extra_ping["role"] else ""
+                try:
+                    await ch.send(sch_ping + tweet_string)
+                except Exception as err:
+                    print_exc()
+                    err_string = f"Error: {err} sending ping to {extra_ping['channel']} for {user}"
+                    log(err_string)
+                    await debug_channel.send(err_string)
 
     # Save new ID to file
     f = open(tweets_file, "w")
@@ -185,12 +166,8 @@ async def send_tweets_message(data, channel, tweets_fetched: int) -> None:
 @client.event
 async def on_ready() -> None:
     global talents_data, channel, schedule_ping, debug_channel
-    talents_data, talents_amount = fetch_user_ids_from_list(list_id)
 
-    if len(talents) != talents_amount:
-        raise RuntimeError(
-            f"Found {len(talents)} talents but {talents_amount} in List")
-    log(f"Loaded {talents_amount} talents and {len(extra_pings)} extra pings")
+    log(f"Loaded {len(extra_pings)} extra pings")
 
     await client.change_presence(
         activity=Activity(type=ActivityType.watching, name="tweets for you"))
@@ -227,12 +204,6 @@ async def fetch(ctx: SlashContext) -> None:
     [tweets_fetched, spaces_fetched] = await check_tweets()
     await ctx.send(f"Found {tweets_fetched} tweets and {spaces_fetched} spaces"
                    )
-
-
-@slash.slash(name="list", description="List watched talents")
-async def list(ctx: SlashContext) -> None:
-    log(f"Command `list` called from server {ctx.guild_id} by {ctx.author}")
-    await ctx.send(f"Watching {len(talents)} talents: {', '.join(talents)}")
 
 
 # -- Helper functions --
