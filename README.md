@@ -46,7 +46,7 @@ files (configurable in `main.py` as well).
 ## Run in Docker
 
 Create a `.env` file with the environment variables mentioned in step 3,
-then build or pull the image and run it:
+then build or pull the image from [Dockerhub](https://hub.docker.com/repository/docker/steeven9/scheduletweetbot) and run it:
 
 ```bash
     docker build . -t scheduletweetbot

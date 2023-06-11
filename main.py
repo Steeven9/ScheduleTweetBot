@@ -169,8 +169,8 @@ async def on_ready() -> None:
 
     log(f"Loaded {len(extra_pings)} extra pings")
 
-    await client.change_presence(
-        activity=Activity(type=ActivityType.watching, name="tweets for you"))
+    await client.change_presence(activity=Activity(type=ActivityType.watching,
+                                                   name="tweets for you 🏳️‍🌈"))
     log(f"Logged in as {client.user}")
     channel = client.get_channel(int(channel_id))
     schedule_ping = utils.get(channel.guild.roles, id=role_id)
