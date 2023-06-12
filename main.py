@@ -110,7 +110,6 @@ async def send_tweets_message(data, channel, tweets_fetched: int) -> None:
     result = ""
     i = 0
     users_string = ""
-    tweet_type = "Tweet"
 
     for tweet in data:
         if "RT @" in tweet["content"][:4]:
@@ -118,6 +117,12 @@ async def send_tweets_message(data, channel, tweets_fetched: int) -> None:
                 continue
             ping += f"[{get_rt_text(tweet)}] "
         user = tweet["talent"]
+        if tweet["keyword"] == "schedule":
+            tweet_type = ":calendar: Schedule tweet"
+        elif tweet["keyword"] == "guerilla":
+            tweet_type = ":gorilla: Guerilla tweet"
+        else:
+            tweet_type = "Tweet"
         tweet_string = f"{tweet_type} from {user} - https://twitter.com/{user}/status/{tweet['id']}\n\n"
         result += tweet_string
         users_string += user + ", "
