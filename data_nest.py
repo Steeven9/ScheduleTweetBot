@@ -9,7 +9,7 @@ enable_retweets = False
 api_url = "https://blooop.moe/tweetsByServer/NEST"
 
 extra_pings = [{
-    "talent": "Selen_Tatsuki",
+    "talent": "selen_tatsuki",
     "channel": 980608534200877096,
     "role": 981360473003937824
 }]

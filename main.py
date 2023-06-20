@@ -129,7 +129,7 @@ async def send_tweets_message(data, channel, tweets_fetched: int) -> None:
         i += 1
 
         for extra_ping in extra_pings:
-            if user == extra_ping["talent"]:
+            if user == extra_ping["talent"].lower():
                 log(f"Sending extra ping for {user}")
                 ch = client.get_channel(
                     extra_ping["channel"]
