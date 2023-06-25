@@ -1,24 +1,31 @@
-from requests import get
+from os import getenv
 
-from data import api_url
+from requests import get
+from requests.exceptions import JSONDecodeError
+
+from data import bot_name
+
+api_url = getenv("API_URL")
+if api_url == None:
+    raise ValueError(f"[{bot_name}] API URL not found!")
 
 
 # Get new tweets (more recent than newest_id)
 def fetch_tweets(newest_id: str) -> list:
     response = get(f"{api_url}?newestId={newest_id}")
-    data = response.json()
+    try:
+        data = response.json()
+    except JSONDecodeError:
+        raise Exception("Unexpected JSON data")
     new_tweets = len(data)
     if new_tweets != 0:
         newest_id = data[-1]["id"]
     return [data, new_tweets, newest_id]
 
 
-# Matches spaces that:
-# - are from the talents array
-def fetch_spaces(talents: list) -> list:
-    user_ids = [user.id for user in talents]
-    #TODO fix
-    response = [
-    ]  #client.get_spaces(user_ids=user_ids, expansions=["creator_id"])
-    new_spaces = 0  #response.meta["result_count"]
+# Get new spaces
+def fetch_spaces() -> list:
+    #TODO find a way to implement
+    response = []
+    new_spaces = 0
     return [response, new_spaces]

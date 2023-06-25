@@ -19,11 +19,11 @@ spaces_file = f"config/{bot_name}_spaces.ini"
 # Set this to True to register slash commands on boot
 sync_commands = True
 # Discord bot token
-discord_token = getenv(f"{bot_name.upper()}BOT_TOKEN")
+discord_token = getenv("BOT_TOKEN")
 # Debug channel to send errors to (private)
 debug_channel_id = 935532391550820372
 # Heartbeat URL
-heartbeat_url = getenv(f"{bot_name.upper()}BOT_HEARTBEAT_URL")
+heartbeat_url = getenv("HEARTBEAT_URL")
 
 # -- Try to read existing tweets and spaces from files --
 try:
@@ -53,14 +53,13 @@ slash = SlashCommand(client, sync_commands)
 channel = None
 schedule_ping = None
 debug_channel = None
-talents_data = []
 
 
 async def check_tweets() -> list:
     global newest_id
     try:
         [tweets, tweets_fetched, newest_id] = fetch_tweets(newest_id)
-        [spaces, spaces_fetched] = [[], 0]  #fetch_spaces(talents_data)
+        [spaces, spaces_fetched] = fetch_spaces()
     except Exception as err:
         print_exc()
         err_string = f"Error: {err}"
@@ -170,7 +169,7 @@ async def send_tweets_message(data, channel, tweets_fetched: int) -> None:
 
 @client.event
 async def on_ready() -> None:
-    global talents_data, channel, schedule_ping, debug_channel
+    global channel, schedule_ping, debug_channel
 
     log(f"Loaded {len(extra_pings)} extra pings")
 

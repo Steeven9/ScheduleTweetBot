@@ -11,9 +11,6 @@ role_id = 942805359494574111
 # Whether to include retweets as well
 enable_retweets = False
 
-# URL from where to fetch tweets
-api_url = "https://blooop.moe/tweetsByServer/KFP"
-
 extra_pings = [{
     "talent": "ninomaeinanis",
     "channel": 225654873599901696,

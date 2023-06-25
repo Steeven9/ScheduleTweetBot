@@ -17,8 +17,8 @@ feed our [Hololive](https://holocal.moe) and [Nijisanji](https://nijien.vercel.a
     pip install --no-cache-dir -r requirements.txt
     ```
 
-3. Set the NAMEBOT_TOKEN environment variables with the token from step 1.
-   Note: `NAME` is the alias you want to set for the bot (must match `bot_name` in `data.py`).
+3. Set the BOT_TOKEN and API_URL environment variables with the token from step 1
+and the [blooop](https://github.com/Steeven9/blooop) URL respectively.
 
 4. Customize the configuration for scraping and notifying: edit the `data.py` file and fill in all the values.
 

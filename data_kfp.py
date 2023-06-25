@@ -6,8 +6,6 @@ channel_id = 882283424457568257
 role_id = 801317291072946177
 enable_retweets = False
 
-api_url = "https://blooop.moe/tweetsByServer/KFP"
-
 extra_pings = [{
     "talent": "ninomaeinanis",
     "channel": 225654024681029632,
