@@ -122,7 +122,7 @@ async def send_tweets_message(data, channel, tweets_fetched: int) -> None:
             tweet_type = ":gorilla: Guerilla tweet"
         else:
             tweet_type = "Tweet"
-        tweet_string = f"{tweet_type} from {user} - https://twitter.com/{user}/status/{tweet['id']}\n\n"
+        tweet_string = f"{tweet_type} from {user} - https://vxtwitter.com/{user}/status/{tweet['id']}\n\n"
         result += tweet_string
         users_string += user + ", "
         i += 1
