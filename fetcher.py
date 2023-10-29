@@ -11,7 +11,7 @@ if api_url == None:
 
 # Get new tweets (more recent than newest_id)
 def fetch_tweets(newest_id: str) -> list:
-    response = get(f"{api_url}?newestId={newest_id}")
+    response = get(f"{api_url}/tweetsByServer/{bot_name}?newestId={newest_id}")
     data = response.json()
 
     new_tweets = len(data)
