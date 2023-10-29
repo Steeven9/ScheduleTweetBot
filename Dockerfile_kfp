@@ -1,4 +1,4 @@
-FROM python:alpine
+FROM python:3
 
 WORKDIR /usr/src/app
 CMD [ "python", "-u", "./main.py" ]
