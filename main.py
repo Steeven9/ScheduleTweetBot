@@ -127,24 +127,22 @@ async def send_tweets_message(data, channel) -> None:
         users_string += user + ", "
         new_tweets += 1
 
-        # TEMPORARILY DISABLED 28.10.2023
-
-        # for extra_ping in extra_pings:
-        #     if user == extra_ping["talent"].lower():
-        #         log(f"Sending extra ping for {user}")
-        #         ch = client.get_channel(
-        #             extra_ping["channel"]
-        #         ) if extra_ping["role"] else await client.fetch_user(
-        #             extra_ping["channel"])
-        #         sch_ping = utils.get(ch.guild.roles, id=extra_ping["role"]
-        #                              ).mention if extra_ping["role"] else ""
-        #         try:
-        #             await ch.send(sch_ping + tweet_string)
-        #         except Exception as err:
-        #             print_exc()
-        #             err_string = f"Error: {err} sending ping to {extra_ping['channel']} for {user}"
-        #             log(err_string)
-        #             await debug_channel.send(err_string)
+        for extra_ping in extra_pings:
+            if user == extra_ping["talent"].lower():
+                log(f"Sending extra ping for {user}")
+                ch = client.get_channel(
+                    extra_ping["channel"]
+                ) if extra_ping["role"] else await client.fetch_user(
+                    extra_ping["channel"])
+                sch_ping = utils.get(ch.guild.roles, id=extra_ping["role"]
+                                     ).mention if extra_ping["role"] else ""
+                try:
+                    await ch.send(sch_ping + tweet_string)
+                except Exception as err:
+                    print_exc()
+                    err_string = f"Error: {err} sending ping to {extra_ping['channel']} for {user}"
+                    log(err_string)
+                    await debug_channel.send(err_string)
 
     # Save new ID to file
     tweets_file = open(tweets_file_path, "w")
