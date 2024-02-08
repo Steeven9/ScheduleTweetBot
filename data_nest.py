@@ -10,5 +10,5 @@ motd = "🏆"
 extra_pings = [{
     "talent": "dokibird",
     "channel": 980608534200877096,
-    "role": 981360473003937824
+    "role": 1204515517293928568
 }]
