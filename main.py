@@ -7,7 +7,8 @@ from discord.ext import commands, tasks
 from discord_slash import SlashCommand, SlashContext
 from requests import get
 
-from data import bot_name, channel_id, enable_retweets, extra_pings, role_id
+from data import (bot_name, channel_id, enable_retweets, extra_pings, motd,
+                  role_id)
 from fetcher import fetch_spaces, fetch_tweets
 
 # -- Options --
@@ -172,8 +173,8 @@ async def on_ready() -> None:
 
     log(f"Loaded {len(extra_pings)} extra pings")
 
-    await client.change_presence(activity=Activity(type=ActivityType.watching,
-                                                   name="tweets for you 🏳️‍🌈"))
+    await client.change_presence(activity=Activity(
+        type=ActivityType.watching, name=f"tweets for you {motd}"))
     log(f"Logged in as {client.user}")
     channel = client.get_channel(int(channel_id))
     schedule_ping = utils.get(channel.guild.roles, id=role_id)

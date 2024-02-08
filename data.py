@@ -10,6 +10,8 @@ channel_id = 935532391550820372
 role_id = 942805359494574111
 # Whether to include retweets as well
 enable_retweets = False
+# String to append to the status on Discord
+motd = "🔱"
 
 # Extra people/servers to ping additionally
 extra_pings = [{
